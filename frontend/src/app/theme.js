@@ -15,6 +15,31 @@ export const theme = createTheme({
   shape: { borderRadius: 12 },
   leia: tokens,
   components: {
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          border: tokens.border,
+          borderRadius: tokens.radius.medium,
+          backgroundColor: tokens.colors.cream,
+          boxShadow: tokens.shadow.medium,
+        },
+      },
+    },
+    MuiDialogTitle: { styleOverrides: { root: { fontWeight: 600, lineHeight: 1.4 } } },
+    MuiDialogActions: { styleOverrides: { root: { gap: 12, padding: 24, flexWrap: 'wrap' } } },
+    MuiDialogContentText: { styleOverrides: { root: { color: tokens.colors.muted, fontSize: 14, lineHeight: 1.8 } } },
+    MuiChip: {
+      styleOverrides: {
+        root: { border: tokens.border, fontWeight: 600, color: tokens.colors.ink, backgroundColor: tokens.colors.cream },
+      },
+    },
+    MuiAlert: {
+      styleOverrides: {
+        root: { border: tokens.border, borderRadius: tokens.radius.medium, boxShadow: tokens.shadow.blue },
+        standardError: { color: tokens.colors.ink, backgroundColor: tokens.colors.sand },
+        message: { width: '100%' },
+      },
+    },
     MuiButton: {
       defaultProps: { disableElevation: true, disableRipple: true },
       styleOverrides: {
@@ -30,6 +55,7 @@ export const theme = createTheme({
         },
         containedSecondary: {
           '&:hover': { backgroundColor: tokens.colors.sand, boxShadow: tokens.shadow.small },
+          '&.Mui-disabled': { backgroundColor: tokens.colors.sand, color: tokens.colors.muted, boxShadow: 'none' },
         },
       },
     },
