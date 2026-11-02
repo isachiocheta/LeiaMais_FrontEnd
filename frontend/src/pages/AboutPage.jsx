@@ -5,6 +5,7 @@ import { PageHeader } from '../components/PageHeader.jsx';
 import { PrimaryButton } from '../components/PrimaryButton.jsx';
 import { StatusBadge } from '../components/StatusBadge.jsx';
 import { BookIllustration } from '../components/BookIllustration.jsx';
+import { ConnectionCheck } from '../components/ConnectionCheck.jsx';
 import flower from '../assets/flor2.png';
 
 export function AboutPage() {
@@ -67,6 +68,8 @@ export function AboutPage() {
         </ol>
         <p className="approval-footnote">Contas pendentes ou inativas não têm acesso à área autenticada.</p>
       </ContentCard>
+
+      <ConnectionCheck />
 
       <div className="about-closing">
         <p>Cada leitor traz uma perspectiva.<br /><strong>É na troca que a história cresce.</strong></p>

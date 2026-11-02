@@ -61,6 +61,12 @@
 .loading-state { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: var(--space-5); padding: var(--space-8) var(--space-5); font-size: 14px; text-align: center; }
 .loading-state-compact { flex-direction: row; padding: var(--space-4); background: var(--color-sand); border-bottom: var(--border); font-size: 12px; }
 .initial-loading { min-height: 70vh; display: grid; place-items: center; }
+.connection-check { margin-top: var(--space-7); padding: var(--space-6); }
+.connection-check > h2 { font-size: 27px; }
+.connection-check > p { margin-top: var(--space-4); font-size: 14px; line-height: 1.8; color: var(--color-muted); }
+.connection-check > .MuiButton-root { margin-top: var(--space-5); }
+.connection-check > .error-state, .connection-check > .loading-state { margin-top: var(--space-5); }
+.connection-check > .connection-result { color: var(--color-ink); padding: var(--space-4); border: var(--border); border-radius: var(--radius-small); background: var(--color-sand); }
 
 @media (max-width: 1000px) {
   .about-intro, .approval-card { padding: var(--space-6); }
