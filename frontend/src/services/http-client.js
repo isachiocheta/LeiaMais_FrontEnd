@@ -4,6 +4,7 @@ import { ApiError, isApiErrorPayload, requestError } from './api-errors.js';
 const safeMethods = new Set(['GET', 'HEAD', 'OPTIONS']);
 const allowedMethods = new Set([...safeMethods, 'POST', 'PUT', 'PATCH', 'DELETE']);
 const sessionChanges = new Set(['auth/login', 'auth/logout', 'me/senha']);
+const publicPaths = new Set(['health', 'ready', 'auth/csrf', 'auth/login', 'auth/cadastro']);
 const isRecord = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 
 function isSuccessPayload(value) {
@@ -16,17 +17,20 @@ function isSuccessPayload(value) {
     && Number.isSafeInteger(meta.total) && meta.total >= 0;
 }
 
-function createScope(signal, timeoutMs) {
+function createScope(signals, timeoutMs) {
   const controller = new AbortController();
-  const abort = () => controller.abort(signal.reason);
-  if (signal?.aborted) abort();
-  else signal?.addEventListener('abort', abort, { once: true });
+  const subscriptions = signals.filter(Boolean).map((signal) => {
+    const abort = () => controller.abort(signal.reason);
+    if (signal.aborted) abort();
+    else signal.addEventListener('abort', abort, { once: true });
+    return { signal, abort };
+  });
   const timer = timeoutMs > 0 ? setTimeout(() => controller.abort(new DOMException('', 'TimeoutError')), timeoutMs) : null;
   return {
     signal: controller.signal,
     dispose() {
       clearTimeout(timer);
-      signal?.removeEventListener('abort', abort);
+      for (const { signal, abort } of subscriptions) signal.removeEventListener('abort', abort);
     },
   };
 }
@@ -74,6 +78,18 @@ export function createHttpClient({ baseUrl, fetchImpl = (...args) => globalThis.
   let csrfToken;
   let tokenFlight;
   let tokenEpoch = 0;
+  let protectedController = new AbortController();
+  const unauthorizedListeners = new Set();
+
+  function cancelProtectedRequests() {
+    protectedController.abort();
+    protectedController = new AbortController();
+  }
+
+  function subscribeUnauthorized(listener) {
+    unauthorizedListeners.add(listener);
+    return () => unauthorizedListeners.delete(listener);
+  }
 
   function clearCsrfToken() {
     tokenEpoch += 1;
@@ -105,22 +121,24 @@ export function createHttpClient({ baseUrl, fetchImpl = (...args) => globalThis.
     return csrfToken;
   }
 
-  async function request(path, { method = 'GET', query, body, headers, signal, timeoutMs: requestTimeout = timeoutMs } = {}) {
+  async function request(path, { method = 'GET', query, body, headers, signal, requiresAuth, timeoutMs: requestTimeout = timeoutMs } = {}) {
     let url;
     let requestHeaders;
     let requestBody;
     let scope;
+    let protectedRequest;
     const context = { method: String(method).toUpperCase(), path: '', requestSent: false };
     try {
       url = buildApiUrl(base, path, query);
       context.path = url.pathname.slice(new URL(`${base}/`).pathname.length);
+      protectedRequest = requiresAuth ?? !publicPaths.has(context.path);
       if (!allowedMethods.has(context.method) || !Number.isFinite(requestTimeout) || requestTimeout < 0) throw new Error();
       if (['GET', 'HEAD'].includes(context.method) && body !== undefined) throw new Error();
       requestHeaders = new Headers(headers);
       requestHeaders.set('Accept', 'application/json');
       requestHeaders.delete('X-CSRF-Token');
       requestBody = prepareBody(body, requestHeaders);
-      scope = createScope(signal, requestTimeout);
+      scope = createScope([signal, protectedRequest ? protectedController.signal : null], requestTimeout);
     } catch {
       throw requestError('client', context);
     }
@@ -167,6 +185,12 @@ export function createHttpClient({ baseUrl, fetchImpl = (...args) => globalThis.
     } catch (error) {
       if (error instanceof ApiError && [401, 403].includes(error.status)) clearCsrfToken();
       if (context.requestSent && sessionChanges.has(context.path)) clearCsrfToken();
+      if (error instanceof ApiError && error.status === 401 && context.requestSent && protectedRequest) {
+        for (const listener of unauthorizedListeners) {
+          try { listener({ error, path: context.path }); } catch {}
+        }
+        throw error;
+      }
       if (scope.signal.aborted) throw abortError(scope.signal, context);
       if (error instanceof ApiError) throw error;
       throw requestError('network', context);
@@ -175,5 +199,5 @@ export function createHttpClient({ baseUrl, fetchImpl = (...args) => globalThis.
     }
   }
 
-  return Object.freeze({ request, getCsrfToken, clearCsrfToken });
+  return Object.freeze({ request, getCsrfToken, clearCsrfToken, subscribeUnauthorized, cancelProtectedRequests });
 }

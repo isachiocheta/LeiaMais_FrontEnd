@@ -1,15 +1,27 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import Button from '@mui/material/Button';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Brand } from './Brand.jsx';
 import { ContentContainer } from './ContentContainer.jsx';
+import { useAuth } from '../hooks/useAuth.js';
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
   const isMobile = useMediaQuery('(max-width: 700px)');
   const location = useLocation();
+  const navigate = useNavigate();
+  const auth = useAuth();
+
+  async function signOut() {
+    try {
+      await auth.logout();
+      navigate('/login', { replace: true });
+    } catch (error) {
+      if (error.status === 401) navigate('/login', { replace: true });
+    }
+  }
 
   useEffect(() => {
     setOpen(false);
@@ -40,6 +52,13 @@ export function SiteHeader() {
         <nav id="public-navigation" className="site-nav" aria-label="Navegação principal" hidden={isMobile && !open}>
           <NavLink to="/" end onClick={() => setOpen(false)}>Início</NavLink>
           <NavLink to="/sobre" onClick={() => setOpen(false)}>Sobre o clube</NavLink>
+          {auth.status === 'authenticated' && <>
+            <NavLink to="/minha-area" onClick={() => setOpen(false)}>Minha área</NavLink>
+            <Button type="button" onClick={signOut}>Sair</Button>
+          </>}
+          {auth.status === 'unauthenticated' && <NavLink to="/login" onClick={() => setOpen(false)}>Entrar</NavLink>}
+          {auth.status === 'checking' && <span className="session-nav" role="status">{auth.action === 'logout' ? 'Saindo…' : 'Verificando sessão…'}</span>}
+          {auth.status === 'temporary_error' && <Button type="button" onClick={() => auth.verifySession().catch(() => {})}>Verificar sessão</Button>}
         </nav>
         <span className="header-caption"><span aria-hidden="true">✳</span> Histórias que aproximam</span>
       </ContentContainer>

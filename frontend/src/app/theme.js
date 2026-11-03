@@ -15,6 +15,21 @@ export const theme = createTheme({
   shape: { borderRadius: 12 },
   leia: tokens,
   components: {
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: tokens.radius.small,
+          backgroundColor: tokens.colors.cream,
+          '& .MuiOutlinedInput-notchedOutline': { borderColor: tokens.colors.ink, borderWidth: 2 },
+          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: tokens.colors.ink },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: tokens.colors.blueText, borderWidth: 3 },
+          '&.Mui-error .MuiOutlinedInput-notchedOutline': { borderColor: '#9D2925' },
+        },
+        input: { fontSize: 15 },
+      },
+    },
+    MuiInputLabel: { styleOverrides: { root: { color: tokens.colors.ink, '&.Mui-focused': { color: tokens.colors.blueText } } } },
+    MuiIconButton: { styleOverrides: { root: { minHeight: 44, minWidth: 44, '&:focus-visible': { outline: `3px solid ${tokens.colors.ink}`, outlineOffset: 2 } } } },
     MuiDialog: {
       styleOverrides: {
         paper: {

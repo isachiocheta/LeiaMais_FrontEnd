@@ -7,6 +7,7 @@ import '@fontsource/poppins/latin-700.css';
 import { App } from './app/App.jsx';
 import './styles/global.css';
 import './styles/public.css';
+import './styles/auth.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

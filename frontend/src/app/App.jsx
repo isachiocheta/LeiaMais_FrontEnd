@@ -5,13 +5,14 @@ import GlobalStyles from '@mui/material/GlobalStyles';
 import { cssVariables } from '../styles/tokens.js';
 import { theme } from './theme.js';
 import { router } from './router.jsx';
+import { AuthProvider } from './AuthProvider.jsx';
 
 export function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <GlobalStyles styles={{ ':root': cssVariables }} />
-      <RouterProvider router={router} />
+      <AuthProvider><RouterProvider router={router} /></AuthProvider>
     </ThemeProvider>
   );
 }
