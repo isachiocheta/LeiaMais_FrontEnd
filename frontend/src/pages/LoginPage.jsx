@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import Alert from '@mui/material/Alert';
 import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
-import InputAdornment from '@mui/material/InputAdornment';
 import { useAuth } from '../hooks/useAuth.js';
 import { AUTH_STATUS } from '../app/auth-controller.js';
 import { safeReturnTo } from '../utils/return-to.js';
@@ -14,22 +12,14 @@ import { PageHeader } from '../components/PageHeader.jsx';
 import { PrimaryButton } from '../components/PrimaryButton.jsx';
 import { LoadingState } from '../components/LoadingState.jsx';
 import { SessionProblem } from '../components/SessionProblem.jsx';
+import { PasswordField } from '../components/PasswordField.jsx';
 import flower from '../assets/flor2.png';
-
-function Eye({ visible }) {
-  return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
-    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke="currentColor" strokeWidth="1.7" />
-    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.7" />
-    {visible && <path d="m3 3 18 18" stroke="currentColor" strokeWidth="1.7" />}
-  </svg>;
-}
 
 export function LoginPage() {
   const auth = useAuth();
   const [params] = useSearchParams();
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [visible, setVisible] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitError, setSubmitError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -62,7 +52,6 @@ export function LoginPage() {
       setSubmitError(error);
     } finally {
       setSenha('');
-      setVisible(false);
       sending.current = false;
       setSubmitting(false);
     }
@@ -89,20 +78,16 @@ export function LoginPage() {
                 disabled={busy || auth.needsVerification}
                 slotProps={{ htmlInput: { autoCapitalize: 'none', spellCheck: false } }}
               />
-              <TextField
-                id="login-senha" label="Senha" name="senha" type={visible ? 'text' : 'password'} autoComplete="current-password" required fullWidth
+              <PasswordField
+                id="login-senha" label="Senha" name="senha" autoComplete="current-password"
                 value={senha} onChange={(event) => setSenha(event.target.value)} inputRef={passwordRef}
                 error={Boolean(fieldErrors.senha)} helperText={fieldErrors.senha || ' '}
                 disabled={busy || auth.needsVerification}
-                slotProps={{ input: { endAdornment: <InputAdornment position="end"><IconButton
-                  type="button" aria-label={visible ? 'Ocultar senha' : 'Mostrar senha'} aria-pressed={visible}
-                  onClick={() => setVisible((current) => !current)} onMouseDown={(event) => event.preventDefault()}
-                  disabled={busy || auth.needsVerification}
-                ><Eye visible={visible} /></IconButton></InputAdornment> } }}
               />
               <PrimaryButton type="submit" disabled={busy || auth.needsVerification} fullWidth>{busy ? 'Entrando…' : 'Entrar'}</PrimaryButton>
             </form>
-            <p className="login-footnote">O acesso dos leitores é liberado após a aprovação do cadastro pela administração do clube.</p>
+            <p className="login-footnote">Para entrar, seu cadastro precisa estar aprovado pela administração do clube e sua conta deve estar ativa.</p>
+            <p className="auth-switch">Ainda não tem conta? <Link to="/cadastro">Solicite seu cadastro.</Link></p>
           </>}
           <Link className="text-link" to="/sobre">Conheça o clube <span aria-hidden="true">↗</span></Link>
         </ContentCard>

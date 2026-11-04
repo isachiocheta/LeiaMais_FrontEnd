@@ -24,7 +24,7 @@ export function PublicLayout() {
       <SiteHeader />
       <main id="conteudo" ref={mainRef} tabIndex={-1}>
         {navigation.state !== 'idle' && <LoadingState compact message="Abrindo a próxima página…" />}
-        {auth.status === 'temporary_error' && location.pathname !== '/login' && !matches.some((match) => match.handle?.requiresAuth) && <ContentContainer className="session-notice"><SessionProblem /></ContentContainer>}
+        {auth.status === 'temporary_error' && !matches.some((match) => match.handle?.handlesSessionError || match.handle?.requiresAuth) && <ContentContainer className="session-notice"><SessionProblem /></ContentContainer>}
         {auth.reason === 'expired' && auth.status === 'unauthenticated' && location.pathname !== '/login' && !matches.some((match) => match.handle?.requiresAuth) && <ContentContainer className="session-notice"><Alert severity="warning">Sua sessão não está mais disponível. <Link to={loginDestination(location)}>Entre novamente.</Link></Alert></ContentContainer>}
         <Outlet />
       </main>

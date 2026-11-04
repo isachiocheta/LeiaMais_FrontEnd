@@ -3,21 +3,24 @@ import { fileURLToPath } from 'node:url';
 
 export const backendPackage = fileURLToPath(new URL('../../../../leia+_backend/backend/package.json', import.meta.url));
 
-export async function createPassportFixture() {
+export async function createPassportFixture({ limiteCadastro = { maximo: 100 } } = {}) {
   const require = createRequire(backendPackage);
   const express = require('express');
   const bcrypt = require('bcrypt');
+  const { UniqueConstraintError, ConnectionError } = require('sequelize');
   const { criarAutenticacao } = require('./autenticacao/rotas');
   const { carregarConfiguracaoSessao } = require('./configuracao/sessao');
   const { configurarHttp } = require('./intermediarios/http');
   const { tratarErros, rotaNaoEncontrada } = require('./intermediarios/erros');
   const sessions = new Map();
   let offset = 0;
+  let registrationUnavailable = false;
   const password = '  Leitura da fixture 🐝  ';
   const hash = await bcrypt.hash(password, 4);
   const users = [
     { id: 1, nome: 'Leitora da fixture', email: 'leitor@fixture.test', perfil: 'LEITOR', situacao: 'ATIVO', sessionVersion: 0, senhaHash: hash },
     { id: 2, nome: 'Admin da fixture', email: 'admin@fixture.test', perfil: 'ADMIN_CLUBE', situacao: 'ATIVO', sessionVersion: 0, senhaHash: hash },
+    { id: 3, nome: 'Pessoa inativa da fixture', email: 'inativo@fixture.test', perfil: 'LEITOR', situacao: 'INATIVO', sessionVersion: 0, senhaHash: hash },
   ];
   const pool = {
     async query(sql, params) {
@@ -37,11 +40,18 @@ export async function createPassportFixture() {
     scope() { return this; },
     async findOne({ where }) { return users.find((user) => user.email === where.email) ?? null; },
     async findByPk(id) { return users.find((user) => user.id === id) ?? null; },
+    async create(values) {
+      if (registrationUnavailable) throw new ConnectionError(new Error('Persistência indisponível na fixture.'));
+      if (users.some((user) => user.email === values.email)) throw new UniqueConstraintError({});
+      const user = { ...values, id: Math.max(...users.map((item) => item.id)) + 1 };
+      users.push(user);
+      return user;
+    },
   };
   const authentication = criarAutenticacao({
     configuracao: { ...carregarConfiguracaoSessao({ NODE_ENV: 'test', SESSION_SECRET: 'Segredo exclusivo da fixture frontend sem banco real', SESSION_COOKIE_SECURE: 'false' }), nomeCookie: 'leia.fixture.sid' },
     pool, obterUsuario: () => model, agora: () => Date.now() + offset,
-    limiteLogin: { maximo: 100 },
+    limiteLogin: { maximo: 100 }, limiteCadastro,
   });
   const app = express();
   configurarHttp(app, { origemPermitida: 'http://localhost:5173' });
@@ -53,5 +63,10 @@ export async function createPassportFixture() {
   });
   app.use(rotaNaoEncontrada);
   app.use(tratarErros);
-  return { app, password, sessions, close: authentication.encerrar, advance: (milliseconds) => { offset += milliseconds; } };
+  return {
+    app, password, sessions, users, close: authentication.encerrar,
+    advance: (milliseconds) => { offset += milliseconds; },
+    setRegistrationUnavailable: (value) => { registrationUnavailable = value; },
+    verifyPassword: (email, candidate) => bcrypt.compare(candidate, users.find((user) => user.email === email).senhaHash),
+  };
 }

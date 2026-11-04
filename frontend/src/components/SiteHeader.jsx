@@ -56,7 +56,10 @@ export function SiteHeader() {
             <NavLink to="/minha-area" onClick={() => setOpen(false)}>Minha área</NavLink>
             <Button type="button" onClick={signOut}>Sair</Button>
           </>}
-          {auth.status === 'unauthenticated' && <NavLink to="/login" onClick={() => setOpen(false)}>Entrar</NavLink>}
+          {auth.status === 'unauthenticated' && <>
+            <NavLink to="/login" onClick={() => setOpen(false)}>Entrar</NavLink>
+            <NavLink to="/cadastro" onClick={() => setOpen(false)}>Cadastro</NavLink>
+          </>}
           {auth.status === 'checking' && <span className="session-nav" role="status">{auth.action === 'logout' ? 'Saindo…' : 'Verificando sessão…'}</span>}
           {auth.status === 'temporary_error' && <Button type="button" onClick={() => auth.verifySession().catch(() => {})}>Verificar sessão</Button>}
         </nav>

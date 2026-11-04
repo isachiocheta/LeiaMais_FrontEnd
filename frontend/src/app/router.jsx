@@ -40,7 +40,16 @@ export const router = createBrowserRouter([
           return { Component: LoginPage };
         },
         ErrorBoundary: RouteErrorPage,
-        handle: { title: 'Entrar | Leia+' },
+        handle: { title: 'Entrar | Leia+', handlesSessionError: true },
+      },
+      {
+        path: 'cadastro',
+        lazy: async () => {
+          const { RegistrationPage } = await import('../pages/RegistrationPage.jsx');
+          return { Component: RegistrationPage };
+        },
+        ErrorBoundary: RouteErrorPage,
+        handle: { title: 'Cadastro | Leia+', handlesSessionError: true },
       },
       {
         path: 'minha-area',

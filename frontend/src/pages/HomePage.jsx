@@ -6,6 +6,7 @@ import { PrimaryButton } from '../components/PrimaryButton.jsx';
 import { BookIllustration } from '../components/BookIllustration.jsx';
 import flower from '../assets/flor2.png';
 import stemFlower from '../assets/flor1.png';
+import { useAuth } from '../hooks/useAuth.js';
 
 const steps = [
   { title: 'Primeiro, o cadastro', text: 'Você informa seu nome, e-mail e senha para solicitar sua entrada no clube.' },
@@ -14,6 +15,7 @@ const steps = [
 ];
 
 export function HomePage() {
+  const { status } = useAuth();
   return (
     <>
       <section className="hero" aria-labelledby="hero-title">
@@ -28,7 +30,15 @@ export function HomePage() {
                 title={<>Ler é bom.<br />Ler <span className="underlined">junto</span><br />é ainda melhor.</>}
               />
               <p className="hero-description">Um livro abre caminhos. Um clube aproxima pessoas. No Leia+, cada página é um convite para descobrir e compartilhar.</p>
-              <PrimaryButton component={Link} to="#o-clube" endIcon={<span aria-hidden="true">↗</span>}>Conheça o clube</PrimaryButton>
+              <div className="hero-actions">
+                {status === 'authenticated' ? <>
+                  <PrimaryButton component={Link} to="/minha-area" endIcon={<span aria-hidden="true">↗</span>}>Minha área</PrimaryButton>
+                  <Link className="text-link" to="/sobre">Sobre o clube</Link>
+                </> : <>
+                  <PrimaryButton component={Link} to="/cadastro" endIcon={<span aria-hidden="true">↗</span>}>Solicitar cadastro</PrimaryButton>
+                  <Link className="text-link" to="/login">Já tenho conta · Entrar</Link>
+                </>}
+              </div>
             </div>
             <div className="hero-art" aria-hidden="true">
               <span className="art-caption">SEU LUGAR ENTRE AS PÁGINAS</span>
