@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 export const backendPackage = fileURLToPath(new URL('../../../../leia+_backend/backend/package.json', import.meta.url));
 
-export async function createPassportFixture({ limiteCadastro = { maximo: 100 } } = {}) {
+export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, catalogConnection } = {}) {
   const require = createRequire(backendPackage);
   const express = require('express');
   const bcrypt = require('bcrypt');
@@ -56,6 +56,16 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 } }
   const app = express();
   configurarHttp(app, { origemPermitida: 'http://localhost:5173' });
   app.use('/api/auth', authentication.roteador);
+  if (catalogConnection) {
+    const { criarRotasGeneros, criarRotasLivros } = require('./catalogo/rotas');
+    app.use('/api/generos', authentication.identificar, criarRotasGeneros({ obterConexao: () => catalogConnection }));
+    app.use('/api/livros', authentication.identificar, criarRotasLivros({ obterConexao: () => catalogConnection }));
+    app.get('/__fixture/catalog', (req, res) => res.type('html').send('<!doctype html><html lang="pt-BR"><title>Fixture do catálogo</title><h1>Controle do catálogo de teste</h1><form method="post" action="/__fixture/catalog"><button name="mode" value="empty">Esvaziar catálogo da fixture</button><button name="mode" value="unavailable">Indisponibilizar catálogo da fixture</button><button name="mode" value="normal">Restaurar catálogo da fixture</button></form></html>'));
+    app.post('/__fixture/catalog', express.urlencoded({ extended: false }), (req, res) => {
+      catalogConnection.setMode(req.body.mode);
+      res.redirect('/__fixture/catalog');
+    });
+  }
   app.get('/__fixture', (req, res) => res.type('html').send('<!doctype html><html lang="pt-BR"><title>Fixture de autenticação</title><h1>Teste isolado de Passport</h1><p>Não acessa o banco real.</p><form method="post" action="/__fixture/expire"><button>Expirar sessões da fixture</button></form></html>'));
   app.post('/__fixture/expire', (req, res) => {
     offset += 31 * 60 * 1000;

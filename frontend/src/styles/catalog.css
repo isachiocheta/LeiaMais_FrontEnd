@@ -1,0 +1,70 @@
+.catalog-shell.content-card { padding: var(--space-7); }
+.catalog-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-5); margin-bottom: var(--space-7); }
+.catalog-heading h1 { font-size: clamp(36px, 4vw, 50px); }
+.catalog-heading > img { width: 52px; height: auto; margin-top: 12px; flex: none; transform: rotate(12deg); pointer-events: none; }
+.catalog-filter-section { border-bottom: var(--border); padding-bottom: var(--space-5); margin-bottom: var(--space-6); }
+.catalog-filter-section > h2 { font-size: 20px; letter-spacing: -.5px; margin-bottom: var(--space-5); }
+.catalog-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: var(--space-4); row-gap: var(--space-3); align-items: start; }
+.catalog-search { grid-column: span 3; }
+.catalog-filters .MuiFormHelperText-root { margin-inline: 4px; font-size: 11px; }
+.catalog-filters .catalog-clear { margin-bottom: 22px; min-height: 56px; }
+.catalog-filter-section .error-state { margin-block: var(--space-4); }
+.catalog-year-note { margin-top: var(--space-3); font-size: 12px; color: var(--color-muted); }
+.catalog-results-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-6); }
+.catalog-results-heading > h2 { font-size: 24px; letter-spacing: -.7px; }
+.catalog-results-heading > h2:focus { outline: 3px solid var(--color-blueText); outline-offset: 5px; }
+.catalog-results-heading > p { font-size: 12px; color: var(--color-muted); }
+.book-list { display: grid; gap: var(--space-6); }
+.book-card.content-card { display: grid; grid-template-columns: 160px minmax(0, 1fr); align-items: center; gap: var(--space-6); padding: var(--space-5); background: var(--color-sand); box-shadow: var(--shadow-blue); }
+.book-cover { width: 100%; height: auto; aspect-ratio: 2 / 3; object-fit: cover; border: var(--border); border-radius: var(--radius-small); background: var(--color-cream); }
+.book-cover-fallback { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: var(--space-4); color: var(--color-blueText); text-align: center; padding: var(--space-4); }
+.book-cover-fallback > span { font-size: 12px; line-height: 1.7; }
+.book-copy { min-width: 0; }
+.book-genre { display: inline-flex; font-size: 11px; font-weight: 600; line-height: 1.7; padding: 4px 12px; background: var(--color-cream); border: 1px solid var(--color-ink); border-radius: var(--radius-pill); overflow-wrap: anywhere; }
+.book-copy > h2 { margin-top: var(--space-3); font-size: 26px; font-weight: 600; line-height: 1.35; letter-spacing: -.8px; overflow-wrap: anywhere; }
+.book-copy > h2 a { text-decoration-thickness: 1px; }
+.book-copy > h2 a > span { font-size: 20px; color: var(--color-blueText); }
+.book-author { margin-top: var(--space-2); font-size: 14px; font-weight: 500; overflow-wrap: anywhere; }
+.book-description { font-size: 14px; line-height: 1.9; white-space: pre-line; overflow-wrap: anywhere; }
+.book-copy > .book-description { margin-top: var(--space-4); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.book-summary { margin-top: var(--space-4); font-size: 11px; color: var(--color-muted); }
+.book-summary > span { margin-inline: 6px; }
+.catalog-pagination { margin-top: var(--space-7); display: flex; flex-direction: column; align-items: center; gap: var(--space-4); }
+.catalog-pagination > p { font-size: 12px; }
+.catalog-pagination .MuiPagination-ul { gap: 6px; }
+.catalog-pagination .MuiPaginationItem-root { border: 1px solid var(--color-ink); color: var(--color-ink); min-height: 40px; min-width: 36px; margin: 0; font-family: inherit; }
+.catalog-pagination .MuiPaginationItem-root.Mui-selected { background: var(--color-yellow); border-width: 2px; box-shadow: 2px 2px 0 var(--color-ink); }
+.catalog-pagination .MuiPaginationItem-root:focus-visible { outline: 3px solid var(--color-blueText); outline-offset: 3px; }
+.catalog-back { margin-bottom: var(--space-5); }
+.book-detail-card.content-card { display: grid; grid-template-columns: 220px minmax(0, 1fr); align-items: start; gap: var(--space-7); padding: var(--space-7); background: var(--color-sand); box-shadow: var(--shadow-blue); }
+.book-detail-copy { min-width: 0; }
+.book-detail-copy .page-header { margin-top: var(--space-5); }
+.book-detail-copy h1 { font-size: clamp(32px, 4vw, 46px); overflow-wrap: anywhere; letter-spacing: -1.3px; }
+.book-detail-copy .page-description { margin-top: var(--space-3); color: var(--color-ink); overflow-wrap: anywhere; }
+.book-facts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); margin-block: var(--space-6); }
+.book-facts dt { font-weight: 600; color: var(--color-blueText); font-size: 12px; }
+.book-facts dd { margin: 4px 0 0; font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
+.book-detail-copy > h2 { font-size: 24px; letter-spacing: -.5px; margin-bottom: var(--space-4); }
+@media (max-width: 1000px) {
+  .catalog-shell.content-card { padding: var(--space-6); }
+  .catalog-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .catalog-search { grid-column: 1 / -1; }
+  .book-detail-card.content-card { grid-template-columns: 160px minmax(0, 1fr); gap: var(--space-5); padding: var(--space-6); }
+}
+@media (max-width: 700px) {
+  .catalog-shell.content-card { padding: var(--space-5) var(--space-4); }
+  .catalog-heading { gap: var(--space-3); margin-bottom: var(--space-6); }
+  .catalog-heading h1 { font-size: 33px; letter-spacing: -1.3px; }
+  .catalog-heading > img { width: 34px; margin-top: 0; }
+  .catalog-filters { grid-template-columns: 1fr; }
+  .catalog-filters .catalog-clear { margin-bottom: 0; }
+  .book-card.content-card { grid-template-columns: 1fr; padding: var(--space-4); gap: var(--space-5); }
+  .book-card > .book-cover { width: 144px; justify-self: center; }
+  .book-copy > h2 { font-size: 23px; }
+  .book-description { font-size: 13px; }
+  .catalog-pagination .MuiPagination-ul { gap: 4px; }
+  .catalog-pagination .MuiPaginationItem-root { min-width: 30px; padding: 0 4px; }
+  .book-detail-card.content-card { grid-template-columns: 1fr; padding: var(--space-5); }
+  .book-detail-card > .book-cover { width: 180px; justify-self: center; }
+  .book-facts { grid-template-columns: 1fr; gap: var(--space-4); }
+}

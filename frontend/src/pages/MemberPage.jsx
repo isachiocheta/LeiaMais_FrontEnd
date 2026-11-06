@@ -18,7 +18,8 @@ export function MemberPage() {
           <div><dt>Perfil</dt><dd>{user.perfil === 'ADMIN_CLUBE' ? 'Administração do clube' : 'Leitor'}</dd></div>
         </dl>
         <div className="member-links">
-          <PrimaryButton component={Link} to="/sobre">Sobre o clube</PrimaryButton>
+          <PrimaryButton component={Link} to="/catalogo">Explorar catálogo</PrimaryButton>
+          <Link className="text-link" to="/sobre">Sobre o clube</Link>
           <Link className="text-link" to="/">Página inicial <span aria-hidden="true">↗</span></Link>
         </div>
       </ContentCard>

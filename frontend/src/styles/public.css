@@ -3,7 +3,7 @@
 .public-layout > main:focus-visible { outline: 3px solid var(--color-blueText); outline-offset: -3px; }
 .site-nav[hidden] { display: none; }
 .site-header .mobile-menu-button.MuiButton-root { display: none; }
-.site-header .site-nav a { padding: 8px 14px; border: 2px solid transparent; border-radius: var(--radius-small); }
+.site-header .site-nav a { padding: 8px 14px; border: 2px solid transparent; border-radius: var(--radius-small); white-space: nowrap; }
 .site-header .site-nav a.active { border-color: var(--color-ink); background: var(--color-yellow); box-shadow: 2px 2px 0 var(--color-ink); font-weight: 600; }
 .site-header .site-nav a:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 5px; }
 .footer-links { display: flex; align-items: center; gap: var(--space-5); }
@@ -68,6 +68,9 @@
 .connection-check > .error-state, .connection-check > .loading-state { margin-top: var(--space-5); }
 .connection-check > .connection-result { color: var(--color-ink); padding: var(--space-4); border: var(--border); border-radius: var(--radius-small); background: var(--color-sand); }
 
+@media (max-width: 1200px) {
+  .header-caption { display: none; }
+}
 @media (max-width: 1000px) {
   .about-intro, .approval-card { padding: var(--space-6); }
   .footer-links { gap: var(--space-4); }

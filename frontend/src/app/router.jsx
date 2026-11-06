@@ -58,6 +58,24 @@ export const router = createBrowserRouter([
         handle: { title: 'Minha área | Leia+', requiresAuth: true },
       },
       {
+        path: 'catalogo',
+        element: <RequireRole allowedRoles={['ADMIN_CLUBE', 'LEITOR']} />,
+        ErrorBoundary: RouteErrorPage,
+        handle: { requiresAuth: true },
+        children: [
+          {
+            index: true,
+            lazy: async () => ({ Component: (await import('../pages/CatalogPage.jsx')).CatalogPage }),
+            handle: { title: 'Catálogo de livros | Leia+', preserveSearchFocus: true },
+          },
+          {
+            path: ':id',
+            lazy: async () => ({ Component: (await import('../pages/BookDetailsPage.jsx')).BookDetailsPage }),
+            handle: { title: 'Detalhes do livro | Leia+' },
+          },
+        ],
+      },
+      {
         path: 'acesso-negado',
         element: <RequireAuth><AccessDeniedPage /></RequireAuth>,
         ErrorBoundary: RouteErrorPage,
