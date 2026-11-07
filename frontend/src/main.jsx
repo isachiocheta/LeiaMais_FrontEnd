@@ -10,6 +10,7 @@ import './styles/public.css';
 import './styles/auth.css';
 import './styles/catalog.css';
 import './styles/book-admin.css';
+import './styles/cycles.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

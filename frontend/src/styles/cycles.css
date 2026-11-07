@@ -1,0 +1,41 @@
+.cycles-shell > .page-header h1 { font-size: clamp(32px, 4vw, 50px); }
+.cycle-explanation { margin-block: var(--space-4) var(--space-6); font-size: 13px; line-height: 1.9; max-width: 76ch; }
+.cycle-list { display: grid; gap: var(--space-6); }
+.cycle-card.content-card { display: grid; grid-template-columns: minmax(180px, .8fr) minmax(0, 1.5fr); gap: var(--space-6); padding: var(--space-6); background: var(--color-sand); box-shadow: var(--shadow-blue); }
+.cycle-card-heading h3 { margin-top: var(--space-4); font-size: 26px; line-height: 1.4; overflow-wrap: anywhere; }
+.cycle-card-heading h3 span { color: var(--color-blueText); }
+.cycle-card-copy { min-width: 0; }
+.cycle-book-title { font-size: 21px; font-weight: 600; overflow-wrap: anywhere; }
+.cycle-author { font-size: 13px; margin-top: var(--space-2); overflow-wrap: anywhere; }
+.cycle-period { margin-block: var(--space-4); font-size: 14px; line-height: 1.9; }
+.cycle-calendar { font-weight: 600; margin-top: var(--space-2); color: var(--color-blueText); }
+.cycle-period-note { background: var(--color-cream); border-left: 4px solid var(--color-ink); padding: var(--space-3); margin-top: var(--space-3); font-size: 13px; }
+.cycle-card h4 { font-size: 14px; margin-bottom: var(--space-2); }
+.cycle-instructions { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 1.9; }
+.cycle-card .text-link { margin-top: var(--space-4); }
+.cycle-catalog-link { margin-top: var(--space-7); }
+.cycle-detail-card.content-card { padding: var(--space-7); }
+.cycle-detail-card h1 { font-size: clamp(32px, 4vw, 46px); overflow-wrap: anywhere; }
+.cycle-detail-grid { display: grid; grid-template-columns: minmax(230px, .8fr) minmax(0, 1.4fr); gap: var(--space-7); align-items: start; margin-top: var(--space-7); }
+.cycle-featured-book { padding: var(--space-5); background: var(--color-sand); border: var(--border); border-radius: var(--radius-medium); box-shadow: var(--shadow-blue); min-width: 0; }
+.cycle-book-mark { display: inline-block; font-size: 60px; color: var(--color-blueText); line-height: 1; margin-bottom: var(--space-5); }
+.cycle-featured-book h2 { font-size: 13px; color: var(--color-blueText); margin-bottom: var(--space-3); }
+.cycle-featured-book h3 { font-size: 25px; line-height: 1.4; overflow-wrap: anywhere; }
+.cycle-featured-book p { font-size: 14px; margin-top: var(--space-3); overflow-wrap: anywhere; }
+.cycle-featured-book .MuiButton-root { margin-top: var(--space-6); }
+.cycle-detail-copy section + section { margin-top: var(--space-6); }
+.cycle-detail-copy h2 { font-size: 21px; margin-bottom: var(--space-3); }
+.cycle-status-note, .cycle-timezone-note { font-size: 12px; line-height: 1.8; margin-top: var(--space-3); }
+.cycles-page .status-badge, .cycle-details-page .status-badge { font-size: 12px; height: auto; min-height: 30px; margin: 0; border: 1px solid var(--color-ink); color: var(--color-ink); }
+@media (max-width: 1000px) {
+  .site-header .header-inner { gap: var(--space-3); }
+  .site-header .site-nav { gap: 0; }
+  .site-header .site-nav a { padding-inline: 8px; }
+  .cycle-detail-grid { gap: var(--space-5); }
+}
+@media (max-width: 700px) {
+  .cycle-card.content-card { grid-template-columns: 1fr; padding: var(--space-5); gap: var(--space-4); }
+  .cycle-card-heading h3 { font-size: 24px; }
+  .cycle-detail-card.content-card { padding: var(--space-5); }
+  .cycle-detail-grid { grid-template-columns: 1fr; }
+}

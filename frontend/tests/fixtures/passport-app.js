@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 export const backendPackage = fileURLToPath(new URL('../../../../leia+_backend/backend/package.json', import.meta.url));
 
-export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, catalogConnection } = {}) {
+export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, catalogConnection, cycleConnection } = {}) {
   const require = createRequire(backendPackage);
   const express = require('express');
   const bcrypt = require('bcrypt');
@@ -56,6 +56,15 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
   const app = express();
   configurarHttp(app, { origemPermitida: 'http://localhost:5173' });
   app.use('/api/auth', authentication.roteador);
+  if (cycleConnection) {
+    const { criarRotasCiclos } = require('./ciclos/rotas');
+    app.use('/api/ciclos', authentication.identificar, criarRotasCiclos({ obterConexao: () => cycleConnection }));
+    app.get('/__fixture/cycles', (req, res) => res.type('html').send('<!doctype html><html lang="pt-BR"><title>Fixture dos ciclos</title><h1>Controle dos ciclos de teste</h1><form method="post" action="/__fixture/cycles"><button name="mode" value="empty">Esvaziar ciclos da fixture</button><button name="mode" value="unavailable">Indisponibilizar ciclos da fixture</button><button name="mode" value="normal">Restaurar ciclos da fixture</button></form></html>'));
+    app.post('/__fixture/cycles', express.urlencoded({ extended: false }), (req, res) => {
+      cycleConnection.setMode(req.body.mode);
+      res.redirect('/__fixture/cycles');
+    });
+  }
   if (catalogConnection) {
     const { criarRotasGeneros, criarRotasLivros } = require('./catalogo/rotas');
     app.use('/api/generos', authentication.identificar, criarRotasGeneros({ obterConexao: () => catalogConnection }));

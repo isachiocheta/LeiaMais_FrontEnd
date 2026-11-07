@@ -76,6 +76,24 @@ export const router = createBrowserRouter([
         ],
       },
       {
+        path: 'ciclos',
+        element: <RequireRole allowedRoles={['ADMIN_CLUBE', 'LEITOR']} />,
+        ErrorBoundary: RouteErrorPage,
+        handle: { requiresAuth: true },
+        children: [
+          {
+            index: true,
+            lazy: async () => ({ Component: (await import('../pages/CyclesPage.jsx')).CyclesPage }),
+            handle: { title: 'Ciclos de leitura | Leia+', preserveSearchFocus: true },
+          },
+          {
+            path: ':id',
+            lazy: async () => ({ Component: (await import('../pages/CycleDetailsPage.jsx')).CycleDetailsPage }),
+            handle: { title: 'Detalhes do ciclo | Leia+' },
+          },
+        ],
+      },
+      {
         path: 'admin/livros',
         element: <RequireRole allowedRoles={['ADMIN_CLUBE']} />,
         ErrorBoundary: RouteErrorPage,
