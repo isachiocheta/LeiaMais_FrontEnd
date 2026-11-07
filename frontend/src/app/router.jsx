@@ -76,6 +76,29 @@ export const router = createBrowserRouter([
         ],
       },
       {
+        path: 'admin/livros',
+        element: <RequireRole allowedRoles={['ADMIN_CLUBE']} />,
+        ErrorBoundary: RouteErrorPage,
+        handle: { requiresAuth: true },
+        children: [
+          {
+            index: true,
+            lazy: async () => ({ Component: (await import('../pages/AdminBooksPage.jsx')).AdminBooksPage }),
+            handle: { title: 'Administrar livros | Leia+', preserveSearchFocus: true },
+          },
+          {
+            path: 'novo',
+            lazy: async () => ({ Component: (await import('../pages/BookEditorPage.jsx')).BookEditorPage }),
+            handle: { title: 'Novo livro | Leia+' },
+          },
+          {
+            path: ':id/editar',
+            lazy: async () => ({ Component: (await import('../pages/BookEditorPage.jsx')).BookEditorPage }),
+            handle: { title: 'Editar livro | Leia+' },
+          },
+        ],
+      },
+      {
         path: 'acesso-negado',
         element: <RequireAuth><AccessDeniedPage /></RequireAuth>,
         ErrorBoundary: RouteErrorPage,

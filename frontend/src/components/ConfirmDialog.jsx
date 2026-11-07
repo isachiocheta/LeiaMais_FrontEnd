@@ -11,6 +11,7 @@ import { PrimaryButton } from './PrimaryButton.jsx';
 export function ConfirmDialog({
   open, title, description, onConfirm, onCancel,
   confirmLabel = 'Confirmar', cancelLabel = 'Cancelar', pending = false,
+  errorMessage, confirmDisabled = false,
 }) {
   const id = useId();
   const lock = useRef(false);
@@ -27,7 +28,7 @@ export function ConfirmDialog({
   }
 
   async function confirm() {
-    if (busy || lock.current) return;
+    if (busy || lock.current || confirmDisabled) return;
     lock.current = true;
     setSubmitting(true);
     setFailed(false);
@@ -55,14 +56,14 @@ export function ConfirmDialog({
         transition: { onEntered: () => cancelRef.current?.focus() },
       }}
     >
-      <DialogTitle id={`${id}-title`}>{title}</DialogTitle>
+      <DialogTitle id={`${id}-title`} sx={{ overflowWrap: 'anywhere' }}>{title}</DialogTitle>
       <DialogContent>
         <DialogContentText id={`${id}-description`}>{description}</DialogContentText>
-        {failed && <p className="dialog-error" role="alert">Não foi possível concluir. Tente novamente.</p>}
+        {failed && <p className="dialog-error" role="alert">{errorMessage || 'Não foi possível concluir. Tente novamente.'}</p>}
       </DialogContent>
       <DialogActions>
         <Button ref={cancelRef} autoFocus onClick={cancel} disabled={busy}>{cancelLabel}</Button>
-        <PrimaryButton onClick={confirm} disabled={busy}>{busy ? 'Aguarde…' : confirmLabel}</PrimaryButton>
+        <PrimaryButton onClick={confirm} disabled={busy || confirmDisabled}>{busy ? 'Aguarde…' : confirmLabel}</PrimaryButton>
       </DialogActions>
     </Dialog>
   );

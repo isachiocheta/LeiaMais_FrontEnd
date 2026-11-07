@@ -42,3 +42,7 @@ export function catalogQuery(filters) {
 export function changeCatalogFilters(filters, changes) {
   return { ...filters, ...changes, page: 1 };
 }
+
+export function availableCatalogPage({ page, pageSize, total }) {
+  return Math.min(page, Math.max(1, Math.ceil(total / pageSize)));
+}

@@ -19,6 +19,7 @@ export function MemberPage() {
         </dl>
         <div className="member-links">
           <PrimaryButton component={Link} to="/catalogo">Explorar catálogo</PrimaryButton>
+          {user.perfil === 'ADMIN_CLUBE' && <Link className="text-link" to="/admin/livros">Administrar livros</Link>}
           <Link className="text-link" to="/sobre">Sobre o clube</Link>
           <Link className="text-link" to="/">Página inicial <span aria-hidden="true">↗</span></Link>
         </div>

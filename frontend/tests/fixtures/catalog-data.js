@@ -21,13 +21,46 @@ export function createCatalogConnection() {
     };
   });
   const calls = [];
+  const linkedBookIds = new Set([1]);
+  let nextId = 27;
   let mode = 'normal';
+  function available() {
+    if (mode === 'unavailable') throw new ConnectionError(new Error('Catálogo indisponível na fixture.'));
+  }
+  function modelBook(book) {
+    if (!book) return null;
+    return {
+      ...book,
+      async update(data) { available(); Object.assign(book, data, { genero: genres.find((genre) => genre.id === (data.generoId ?? book.generoId)), atualizadoEm: new Date().toISOString() }); },
+      async destroy() { available(); books.splice(books.indexOf(book), 1); },
+    };
+  }
   return {
-    books, genres, calls,
+    books, genres, calls, linkedBookIds,
+    models: {
+      Genero: { async findByPk(id) { available(); return genres.find((genre) => genre.id === id) || null; } },
+      CicloLeitura: { async findOne({ where }) { available(); return linkedBookIds.has(where.livroId) ? { id: 1 } : null; } },
+      Livro: {
+        async findByPk(id) { available(); return modelBook(books.find((book) => book.id === id)); },
+        async create(data) {
+          available();
+          const now = new Date().toISOString();
+          const book = { anoPublicacao: null, descricao: null, capaUrl: null, ...data, id: nextId++, genero: genres.find((genre) => genre.id === data.generoId), criadoEm: now, atualizadoEm: now };
+          books.push(book);
+          return modelBook(book);
+        },
+      },
+    },
+    async transaction(options, task) {
+      available();
+      const snapshot = structuredClone(books);
+      try { return await task({ LOCK: { KEY_SHARE: 'KEY_SHARE', UPDATE: 'UPDATE' } }); }
+      catch (error) { books.splice(0, books.length, ...snapshot); throw error; }
+    },
     setMode(value) { if (['normal', 'empty', 'unavailable'].includes(value)) mode = value; },
     async query(sql, { bind = {} } = {}) {
       calls.push({ sql, bind: { ...bind } });
-      if (mode === 'unavailable') throw new ConnectionError(new Error('Catálogo indisponível na fixture.'));
+      available();
       if (bind.termo?.includes('lenta')) await new Promise((resolve) => setTimeout(resolve, 1000));
       if (sql.includes('FROM generos')) {
         if (sql.startsWith('SELECT count')) return [{ total: String(genres.length) }];

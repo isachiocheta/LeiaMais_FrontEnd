@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { catalogQuery, changeCatalogFilters, readCatalogQuery } from '../utils/catalog-query.js';
 
@@ -36,10 +36,14 @@ export function useCatalogFilters() {
     setParams(new URLSearchParams(), navigationOptions);
   }
 
+  const goPage = useCallback((page, { replace = false, flushSync = true } = {}) => {
+    setParams(catalogQuery({ ...parsed.filters, page }), { ...navigationOptions, replace, flushSync });
+  }, [parsed.filters, setParams]);
+
   return {
     ...parsed, draft, setDraft, update, clear, search,
     waiting: draft.trim() !== parsed.filters.q,
-    goPage: (page) => setParams(catalogQuery({ ...parsed.filters, page }), navigationOptions),
+    goPage,
     hasChanges: search.length > 0 || draft.length > 0,
   };
 }
