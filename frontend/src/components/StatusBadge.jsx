@@ -7,6 +7,9 @@ const statuses = {
   PLANEJADO: { label: 'Planejado', tone: 'yellow', icon: '◇' },
   EM_ANDAMENTO: { label: 'Em andamento', tone: 'blue', icon: '▶' },
   CONCLUIDO: { label: 'Concluído', tone: 'sand', icon: '✓' },
+  AGENDADO: { label: 'Agendado', tone: 'yellow', icon: '◷' },
+  REALIZADO: { label: 'Realizado', tone: 'blue', icon: '✓' },
+  CANCELADO: { label: 'Cancelado', tone: 'sand', icon: '×' },
 };
 
 export function StatusBadge({ status }) {

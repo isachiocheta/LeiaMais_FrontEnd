@@ -48,6 +48,7 @@ export function CycleDetailsPage() {
         : resource.status === 'error' ? <><PageHeader title={missing ? 'Ciclo não encontrado' : 'Detalhes do ciclo'} />{missing ? <EmptyState title="Este ciclo não está disponível" description="O ciclo pode ter sido removido ou o endereço pode estar incorreto." action={<PrimaryButton component={Link} to={backTo}>Explorar ciclos</PrimaryButton>} /> : <ErrorState title="Não foi possível carregar o ciclo" message={resource.error.policy?.userMessage} onRetry={resource.reload} />}</>
           : <ContentCard component="article" className="cycle-detail-card">
             <PageHeader eyebrow="CICLO DE LEITURA" title={cycle.nome} />
+            <Link className="text-link cycle-agenda-link" to={`/encontros?cicloId=${cycle.id}`}>Consultar encontros deste ciclo <span aria-hidden="true">→</span></Link>
             <CycleActions cycle={cycle} editTo={`/admin/ciclos/${cycle.id}/editar${context.valid && params.size ? `?${cycleQuery(context.filters)}` : ''}`} onRefresh={refresh} onDeleted={() => navigate(backTo, { replace: true, state: { cycleAction: 'deleted' } })} />
             <div className="cycle-detail-grid">
               <section aria-labelledby="cycle-book-heading" className="cycle-featured-book">

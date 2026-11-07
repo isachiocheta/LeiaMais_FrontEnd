@@ -12,6 +12,7 @@ import './styles/catalog.css';
 import './styles/book-admin.css';
 import './styles/cycles.css';
 import './styles/readings.css';
+import './styles/meetings.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
