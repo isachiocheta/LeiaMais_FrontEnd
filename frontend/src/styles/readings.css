@@ -1,0 +1,44 @@
+.current-reading-card.content-card { margin-top: var(--space-7); padding: var(--space-6); box-shadow: var(--shadow-blue); }
+.current-reading-card > h2 { font-size: 28px; letter-spacing: -.8px; }
+.current-reading-card > h3 { margin-top: var(--space-5); font-size: 24px; overflow-wrap: anywhere; }
+.current-reading-book { margin-block: var(--space-3); overflow-wrap: anywhere; }
+.cycle-participation { margin-top: var(--space-7); padding-top: var(--space-6); border-top: var(--border); }
+.reading-section-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-5); }
+.reading-section-heading h2 { font-size: 24px; letter-spacing: -.5px; }
+.reading-section-heading h2:focus { outline: 3px solid var(--color-blueText); outline-offset: 5px; }
+.cycle-participation > .MuiAlert-root { margin-block: var(--space-4); }
+.cycle-participation .MuiAlert-message > p { margin-top: var(--space-3); }
+.reading-progress { margin-block: var(--space-5); }
+.reading-progress-summary { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); font-size: 14px; margin-bottom: var(--space-3); }
+.reading-progress-summary > p { min-width: 0; overflow-wrap: anywhere; }
+.reading-progress-summary > span { font-weight: 600; white-space: nowrap; color: var(--color-blueText); }
+.reading-progress .MuiLinearProgress-root { height: 16px; border: var(--border); border-radius: var(--radius-small); background: var(--color-cream); }
+.reading-progress .MuiLinearProgress-bar { background: var(--color-blueText); }
+.reading-completion { font-size: 13px; line-height: 1.8; margin-top: var(--space-3); }
+.reading-page-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: var(--space-4); margin-top: var(--space-5); }
+.reading-page-form > p { grid-column: 1 / -1; font-size: 13px; line-height: 1.9; }
+.reading-page-form > .MuiButton-root { min-height: 56px; }
+.reading-updated, .reading-admin-note { font-size: 12px; line-height: 1.9; margin-bottom: var(--space-4); }
+.reading-closed { background: var(--color-sand); border-left: 4px solid var(--color-ink); padding: var(--space-4); font-size: 14px; line-height: 1.9; }
+.reading-join > p { margin-block: var(--space-3); font-size: 14px; line-height: 1.9; }
+.reading-join > .MuiButton-root { margin-top: var(--space-3); }
+.reading-history-link { margin-top: var(--space-5); }
+.reading-page-links { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-5); margin-block: var(--space-5) var(--space-6); }
+.reading-result-count { font-size: 14px; margin-bottom: var(--space-5); }
+.reading-history-list { display: grid; gap: var(--space-6); }
+.reading-history-card.content-card { padding: var(--space-6); background: var(--color-sand); box-shadow: var(--shadow-blue); }
+.reading-history-card h2 { font-size: 25px; margin-block: var(--space-3); overflow-wrap: anywhere; }
+.reading-history-card h3 { font-size: 18px; font-weight: 500; overflow-wrap: anywhere; }
+.reading-user-id { font-size: 12px; }
+.reading-pagination { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-5); margin-top: var(--space-7); }
+.reading-pagination > .reading-page-buttons { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-3); }
+.reading-pagination > .reading-page-buttons > span { font-size: 13px; }
+.reading-pagination > .MuiTextField-root { min-width: 180px; }
+@media (prefers-reduced-motion: reduce) { .reading-progress .MuiLinearProgress-bar { transition: none; } }
+@media (max-width: 700px) {
+  .current-reading-card.content-card, .reading-history-card.content-card { padding: var(--space-5); }
+  .reading-section-heading { align-items: start; flex-direction: column; }
+  .reading-progress-summary { align-items: start; }
+  .reading-page-form { grid-template-columns: 1fr; }
+  .reading-pagination { flex-direction: column; align-items: stretch; }
+}

@@ -35,7 +35,7 @@ export function createCycleConnection({ catalogConnection, writable = false } = 
     };
   }
   return {
-    cycles, calls, participations, meetings,
+    cycles, calls, participations, meetings, books, checkAvailable: available,
     models: {
       Livro: { async findByPk(id) { available(); return books.find((book) => book.id === id) ?? null; } },
       CicloLeitura: {

@@ -17,10 +17,13 @@ import { LoadingState } from '../components/LoadingState.jsx';
 import { EmptyState } from '../components/EmptyState.jsx';
 import { ErrorState } from '../components/ErrorState.jsx';
 import { CycleActions } from '../components/CycleActions.jsx';
+import { CycleParticipation } from '../components/CycleParticipation.jsx';
+import { useAuth } from '../hooks/useAuth.js';
 
 const cycles = createCycleService(api);
 
 export function CycleDetailsPage() {
+  const { user } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -58,6 +61,7 @@ export function CycleDetailsPage() {
                 <section aria-labelledby="cycle-instructions-heading"><h2 id="cycle-instructions-heading">Orientações</h2><p className="cycle-instructions">{cycle.orientacoes?.trim() ? cycle.orientacoes : 'Nenhuma orientação informada para este ciclo.'}</p></section>
               </div>
             </div>
+            {user.perfil === 'LEITOR' && <CycleParticipation key={cycle.id} cycle={cycle} onReloadCycle={resource.reload} />}
           </ContentCard>}
   </ContentContainer>;
 }

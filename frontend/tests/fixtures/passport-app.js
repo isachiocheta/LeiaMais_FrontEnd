@@ -1,9 +1,10 @@
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { attachParticipationData } from './participation-data.js';
 
 export const backendPackage = fileURLToPath(new URL('../../../../leia+_backend/backend/package.json', import.meta.url));
 
-export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, catalogConnection, cycleConnection } = {}) {
+export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, catalogConnection, cycleConnection, readingFixture = false, seedReadings = false } = {}) {
   const require = createRequire(backendPackage);
   const express = require('express');
   const bcrypt = require('bcrypt');
@@ -48,6 +49,7 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
       return user;
     },
   };
+  const readingData = readingFixture ? attachParticipationData(cycleConnection, users, { seed: seedReadings }) : null;
   const authentication = criarAutenticacao({
     configuracao: { ...carregarConfiguracaoSessao({ NODE_ENV: 'test', SESSION_SECRET: 'Segredo exclusivo da fixture frontend sem banco real', SESSION_COOKIE_SECURE: 'false' }), nomeCookie: 'leia.fixture.sid' },
     pool, obterUsuario: () => model, agora: () => Date.now() + offset,
@@ -59,6 +61,10 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
   if (cycleConnection) {
     const { criarRotasCiclos } = require('./ciclos/rotas');
     app.use('/api/ciclos', authentication.identificar, criarRotasCiclos({ obterConexao: () => cycleConnection }));
+    if (readingFixture) {
+      const { criarRotasMinhasParticipacoes } = require('./participacoes/rotas');
+      app.use('/api/me/participacoes', authentication.identificar, criarRotasMinhasParticipacoes({ obterConexao: () => cycleConnection }));
+    }
     app.get('/__fixture/cycle-transitions', (req, res) => res.type('html').send('<!doctype html><html lang="pt-BR"><title>Fixture de transições</title><h1>Controle isolado de transições</h1><form method="post" action="/__fixture/cycle-transitions"><button>Liberar ciclo em andamento da fixture</button></form></html>'));
     app.post('/__fixture/cycle-transitions', (req, res) => { cycleConnection.releaseCurrent(); res.redirect('/__fixture/cycle-transitions'); });
     app.get('/__fixture/cycles', (req, res) => res.type('html').send('<!doctype html><html lang="pt-BR"><title>Fixture dos ciclos</title><h1>Controle dos ciclos de teste</h1><form method="post" action="/__fixture/cycles"><button name="mode" value="empty">Esvaziar ciclos da fixture</button><button name="mode" value="unavailable">Indisponibilizar ciclos da fixture</button><button name="mode" value="normal">Restaurar ciclos da fixture</button></form></html>'));
@@ -85,7 +91,7 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
   app.use(rotaNaoEncontrada);
   app.use(tratarErros);
   return {
-    app, password, sessions, users, close: authentication.encerrar,
+    app, password, sessions, users, readingData, close: authentication.encerrar,
     advance: (milliseconds) => { offset += milliseconds; },
     setRegistrationUnavailable: (value) => { registrationUnavailable = value; },
     verifyPassword: (email, candidate) => bcrypt.compare(candidate, users.find((user) => user.email === email).senhaHash),

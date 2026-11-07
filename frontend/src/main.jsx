@@ -11,6 +11,7 @@ import './styles/auth.css';
 import './styles/catalog.css';
 import './styles/book-admin.css';
 import './styles/cycles.css';
+import './styles/readings.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

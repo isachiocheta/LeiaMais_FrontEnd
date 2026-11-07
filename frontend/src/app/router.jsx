@@ -58,6 +58,13 @@ export const router = createBrowserRouter([
         handle: { title: 'Minha área | Leia+', requiresAuth: true },
       },
       {
+        path: 'minhas-leituras',
+        element: <RequireRole allowedRoles={['ADMIN_CLUBE', 'LEITOR']} />,
+        ErrorBoundary: RouteErrorPage,
+        handle: { title: 'Minhas leituras | Leia+', requiresAuth: true },
+        children: [{ index: true, lazy: async () => ({ Component: (await import('../pages/ReadingHistoryPage.jsx')).ReadingHistoryPage }) }],
+      },
+      {
         path: 'catalogo',
         element: <RequireRole allowedRoles={['ADMIN_CLUBE', 'LEITOR']} />,
         ErrorBoundary: RouteErrorPage,
@@ -99,6 +106,11 @@ export const router = createBrowserRouter([
         ErrorBoundary: RouteErrorPage,
         handle: { requiresAuth: true },
         children: [
+          {
+            path: ':id/participantes',
+            lazy: async () => ({ Component: (await import('../pages/CycleParticipantsPage.jsx')).CycleParticipantsPage }),
+            handle: { title: 'Participantes do ciclo | Leia+' },
+          },
           {
             path: 'novo',
             lazy: async () => ({ Component: (await import('../pages/CycleEditorPage.jsx')).CycleEditorPage }),
