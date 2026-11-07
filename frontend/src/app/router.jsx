@@ -94,6 +94,24 @@ export const router = createBrowserRouter([
         ],
       },
       {
+        path: 'admin/ciclos',
+        element: <RequireRole allowedRoles={['ADMIN_CLUBE']} />,
+        ErrorBoundary: RouteErrorPage,
+        handle: { requiresAuth: true },
+        children: [
+          {
+            path: 'novo',
+            lazy: async () => ({ Component: (await import('../pages/CycleEditorPage.jsx')).CycleEditorPage }),
+            handle: { title: 'Novo ciclo | Leia+' },
+          },
+          {
+            path: ':id/editar',
+            lazy: async () => ({ Component: (await import('../pages/CycleEditorPage.jsx')).CycleEditorPage }),
+            handle: { title: 'Editar ciclo | Leia+' },
+          },
+        ],
+      },
+      {
         path: 'admin/livros',
         element: <RequireRole allowedRoles={['ADMIN_CLUBE']} />,
         ErrorBoundary: RouteErrorPage,

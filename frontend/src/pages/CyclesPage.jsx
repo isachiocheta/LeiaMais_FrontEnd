@@ -1,5 +1,6 @@
-import { useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { useCallback, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
@@ -19,11 +20,16 @@ import { CyclePeriod } from '../components/CyclePeriod.jsx';
 import { LoadingState } from '../components/LoadingState.jsx';
 import { EmptyState } from '../components/EmptyState.jsx';
 import { ErrorState } from '../components/ErrorState.jsx';
+import { PrimaryButton } from '../components/PrimaryButton.jsx';
+import { useAuth } from '../hooks/useAuth.js';
 
 const cycles = createCycleService(api);
 const paginationLabel = (type, page, selected) => ({ page: `${selected ? 'Página atual, página' : 'Ir para a página'} ${page}`, first: 'Primeira página', last: 'Última página', next: 'Próxima página', previous: 'Página anterior' })[type];
 
 export function CyclesPage() {
+  const { user } = useAuth();
+  const location = useLocation();
+  const admin = user?.perfil === 'ADMIN_CLUBE';
   const query = useCycleFilters();
   const { filters, valid, waiting } = query;
   const key = cycleQuery(filters).toString();
@@ -38,10 +44,16 @@ export function CyclesPage() {
   const filtered = Boolean(filters.q || filters.situacao);
   const errors = query.errors;
   const sizeOptions = [...new Set([6, 12, 24, 48, filters.pageSize])].filter((size) => Number.isInteger(size) && size >= 1 && size <= 50).sort((a, b) => a - b);
+  const adjustingPage = valid && !waiting && resource.status === 'success' && filters.page > pages;
+  useEffect(() => {
+    if (adjustingPage) query.goPage(pages, { replace: true, flushSync: false });
+  }, [adjustingPage, pages, query.goPage]);
 
   return <ContentContainer className="inner-page cycles-page">
     <ContentCard className="catalog-shell cycles-shell">
       <PageHeader eyebrow="HISTÓRIAS COMPARTILHADAS" title="Ciclos de leitura" description="Conheça as leituras organizadas pelo clube, seus períodos e orientações." />
+      {location.state?.cycleAction === 'deleted' && <Alert severity="success" className="cycle-notice">Ciclo excluído.</Alert>}
+      {admin && <div className="cycle-list-admin"><PrimaryButton component={Link} to={`/admin/ciclos/novo?${key}`}>Novo ciclo</PrimaryButton></div>}
       <p className="cycle-explanation">A situação é registrada pela administração. As datas indicam o período previsto e não concluem um ciclo automaticamente.</p>
       <section className="catalog-filter-section" aria-labelledby="cycle-filters-title">
         <h2 id="cycle-filters-title">Encontre um ciclo</h2>
@@ -63,7 +75,7 @@ export function CyclesPage() {
         </div>
       </section>
       {!valid ? <ErrorState title="Confira os filtros do endereço" message={Object.values(errors).join(' ')} onRetry={query.clear} retryLabel="Limpar filtros" />
-        : busy ? <LoadingState message="Buscando ciclos…" />
+        : busy || adjustingPage ? <LoadingState message="Buscando ciclos…" />
           : resource.status === 'error' ? <ErrorState title="Não foi possível carregar os ciclos" message={resource.error.policy?.userMessage} onRetry={resource.reload} />
             : <section aria-labelledby="cycle-results-title">
               <div className="catalog-results-heading"><h2 id="cycle-results-title">Leituras do clube</h2><p role="status">{total.toLocaleString('pt-BR')} {total === 1 ? 'ciclo encontrado' : 'ciclos encontrados'}</p></div>
@@ -75,6 +87,7 @@ export function CyclesPage() {
                     <CyclePeriod cycle={cycle} today={today} />
                     <h4>Orientações</h4><p className="cycle-instructions">{cycle.orientacoes?.trim() ? cycle.orientacoes : 'Nenhuma orientação informada.'}</p>
                     <Link className="text-link" to={`/catalogo/${cycle.livroId}`}>Conhecer o livro <span aria-hidden="true">→</span></Link>
+                    {admin && <div className="cycle-card-admin"><Link className="text-link" to={`/admin/ciclos/${cycle.id}/editar?${key}`}>Editar ciclo</Link><Link className="text-link" to={`/ciclos/${cycle.id}?${key}`} onClick={rememberScroll}>Administrar ciclo</Link></div>}
                   </div>
                 </ContentCard>)}</div>}
               {total > 0 && result.data.length > 0 && <div className="catalog-pagination">

@@ -1,5 +1,6 @@
-import { useCallback, useEffect } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import Alert from '@mui/material/Alert';
 import { api } from '../services/api.js';
 import { createCycleService } from '../services/cycles.js';
 import { isCatalogId } from '../utils/catalog-query.js';
@@ -15,11 +16,15 @@ import { PrimaryButton } from '../components/PrimaryButton.jsx';
 import { LoadingState } from '../components/LoadingState.jsx';
 import { EmptyState } from '../components/EmptyState.jsx';
 import { ErrorState } from '../components/ErrorState.jsx';
+import { CycleActions } from '../components/CycleActions.jsx';
 
 const cycles = createCycleService(api);
 
 export function CycleDetailsPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [notice, setNotice] = useState('');
   const [params] = useSearchParams();
   const context = readCycleQuery(params);
   const backTo = context.valid && params.size ? `/ciclos?${cycleQuery(context.filters)}` : '/ciclos';
@@ -28,15 +33,19 @@ export function CycleDetailsPage() {
   const cycle = resource.data;
   const today = useClubDay();
   const missing = resource.error?.status === 404;
+  const savedNotice = location.state?.cycleAction === 'created' ? 'Ciclo criado como Planejado.' : location.state?.cycleAction === 'updated' ? 'Alterações salvas.' : '';
+  function refresh(message) { setNotice(typeof message === 'string' ? message : ''); resource.reload(); }
   useEffect(() => { document.title = cycle ? `${cycle.nome} | Leia+` : 'Detalhes do ciclo | Leia+'; }, [cycle]);
 
   return <ContentContainer className="inner-page cycle-details-page">
     <Link className="text-link catalog-back" to={backTo}><span aria-hidden="true">←</span> Voltar aos ciclos</Link>
+    {(notice || savedNotice) && <Alert severity="success" className="cycle-notice">{notice || savedNotice}</Alert>}
     {!isCatalogId(id) ? <><PageHeader title="Referência de ciclo inválida" /><EmptyState title="Confira o endereço" description="O código do ciclo precisa ser um número inteiro positivo válido." /></>
       : resource.status === 'loading' ? <><PageHeader title="Detalhes do ciclo" /><LoadingState message="Abrindo o ciclo…" /></>
         : resource.status === 'error' ? <><PageHeader title={missing ? 'Ciclo não encontrado' : 'Detalhes do ciclo'} />{missing ? <EmptyState title="Este ciclo não está disponível" description="O ciclo pode ter sido removido ou o endereço pode estar incorreto." action={<PrimaryButton component={Link} to={backTo}>Explorar ciclos</PrimaryButton>} /> : <ErrorState title="Não foi possível carregar o ciclo" message={resource.error.policy?.userMessage} onRetry={resource.reload} />}</>
           : <ContentCard component="article" className="cycle-detail-card">
             <PageHeader eyebrow="CICLO DE LEITURA" title={cycle.nome} />
+            <CycleActions cycle={cycle} editTo={`/admin/ciclos/${cycle.id}/editar${context.valid && params.size ? `?${cycleQuery(context.filters)}` : ''}`} onRefresh={refresh} onDeleted={() => navigate(backTo, { replace: true, state: { cycleAction: 'deleted' } })} />
             <div className="cycle-detail-grid">
               <section aria-labelledby="cycle-book-heading" className="cycle-featured-book">
                 <span className="cycle-book-mark" aria-hidden="true">▤</span><h2 id="cycle-book-heading">Livro deste ciclo</h2>

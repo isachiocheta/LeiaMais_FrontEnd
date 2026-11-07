@@ -27,6 +27,36 @@
 .cycle-detail-copy h2 { font-size: 21px; margin-bottom: var(--space-3); }
 .cycle-status-note, .cycle-timezone-note { font-size: 12px; line-height: 1.8; margin-top: var(--space-3); }
 .cycles-page .status-badge, .cycle-details-page .status-badge { font-size: 12px; height: auto; min-height: 30px; margin: 0; border: 1px solid var(--color-ink); color: var(--color-ink); }
+.cycle-list-admin { margin-top: var(--space-5); }
+.cycle-card-admin, .cycle-action-buttons, .cycle-form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); }
+.cycle-card-admin .text-link { font-size: 13px; }
+.cycle-admin-actions { margin-top: var(--space-5); }
+.cycle-action-buttons { gap: var(--space-3); }
+.cycle-notice, .cycle-form-feedback { margin-block: var(--space-5); }
+.cycle-editor-page { max-width: 920px; }
+.cycle-editor-page h1 { font-size: clamp(34px, 4vw, 48px); }
+.cycle-editor-card.content-card { margin-top: var(--space-6); padding: var(--space-7); box-shadow: var(--shadow-blue); }
+.cycle-form { display: grid; gap: var(--space-5); }
+.cycle-form-intro { font-size: 14px; line-height: 1.9; margin-bottom: var(--space-6); }
+.cycle-book-choice { padding: var(--space-5); background: var(--color-sand); border: var(--border); border-radius: var(--radius-medium); }
+.cycle-field-label { font-size: 14px; font-weight: 600; margin-bottom: var(--space-3); }
+.cycle-book-choice > .MuiButton-root { margin-block: var(--space-4) var(--space-3); }
+.cycle-selected-book { overflow-wrap: anywhere; }
+.cycle-selected-book p { font-size: 13px; margin-top: var(--space-2); }
+.cycle-field-help, .cycle-field-error { font-size: 12px; line-height: 1.7; }
+.cycle-field-error { color: #8C241C; font-weight: 500; }
+.cycle-date-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+.cycle-form-rule { border-left: 3px solid var(--color-ink); padding-left: var(--space-4); font-size: 13px; line-height: 1.9; }
+.cycle-recovery { margin-top: var(--space-3); }
+.book-picker-content.MuiDialogContent-root { padding-top: var(--space-3); }
+.book-picker-content > p { font-size: 13px; margin-top: var(--space-4); }
+.book-picker-list { list-style: none; padding: 0; display: grid; gap: var(--space-3); }
+.book-picker-list li { padding: var(--space-4); border: var(--border); border-radius: var(--radius-small); background: var(--color-sand); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+.book-picker-list li > div { min-width: 0; overflow-wrap: anywhere; }
+.book-picker-list strong { font-size: 14px; }
+.book-picker-list p { font-size: 12px; margin-top: var(--space-2); }
+.book-picker-list .MuiButton-root { flex: none; }
+.book-picker-pagination { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); font-size: 12px; }
 @media (max-width: 1000px) {
   .site-header .header-inner { gap: var(--space-3); }
   .site-header .site-nav { gap: 0; }
@@ -38,4 +68,8 @@
   .cycle-card-heading h3 { font-size: 24px; }
   .cycle-detail-card.content-card { padding: var(--space-5); }
   .cycle-detail-grid { grid-template-columns: 1fr; }
+  .cycle-editor-card.content-card { padding: var(--space-5); }
+  .cycle-date-fields { grid-template-columns: 1fr; }
+  .cycle-form-actions { align-items: stretch; flex-direction: column; }
+  .book-picker-list li { align-items: start; flex-direction: column; gap: var(--space-3); }
 }

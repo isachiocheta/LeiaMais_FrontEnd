@@ -11,7 +11,7 @@ import { PrimaryButton } from './PrimaryButton.jsx';
 export function ConfirmDialog({
   open, title, description, onConfirm, onCancel,
   confirmLabel = 'Confirmar', cancelLabel = 'Cancelar', pending = false,
-  errorMessage, confirmDisabled = false,
+  errorMessage, confirmDisabled = false, recoveryAction,
 }) {
   const id = useId();
   const lock = useRef(false);
@@ -60,6 +60,7 @@ export function ConfirmDialog({
       <DialogContent>
         <DialogContentText id={`${id}-description`}>{description}</DialogContentText>
         {failed && <p className="dialog-error" role="alert">{errorMessage || 'Não foi possível concluir. Tente novamente.'}</p>}
+        {failed && recoveryAction}
       </DialogContent>
       <DialogActions>
         <Button ref={cancelRef} autoFocus onClick={cancel} disabled={busy}>{cancelLabel}</Button>

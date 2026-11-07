@@ -7,6 +7,16 @@ const positive = (value) => Number.isInteger(value) && value > 0 && value <= 214
 const text = (value) => typeof value === 'string' && value.trim().length > 0;
 const timestamp = (value) => typeof value === 'string' && Number.isFinite(Date.parse(value));
 const unexpected = () => requestError('unexpected_response', { status: 200 });
+const formFields = ['nome', 'livroId', 'dataInicio', 'dataFim', 'orientacoes'];
+const writeBody = (data) => Object.fromEntries(formFields.filter((field) => Object.hasOwn(data, field)).map((field) => [field, data[field]]));
+
+function writtenCycle(payload, method, path, id) {
+  try {
+    const cycle = readCycle(payload?.data);
+    if (id !== undefined && cycle.id !== Number(id)) throw unexpected();
+    return cycle;
+  } catch { throw requestError('unexpected_response', { method, path, status: method === 'POST' ? 201 : 200, requestSent: true }); }
+}
 
 function readCycle(value) {
   if (!value || !positive(value.id) || !text(value.nome) || !positive(value.livroId)
@@ -34,6 +44,26 @@ export function createCycleService(client) {
       const cycle = readCycle((await client.request(`ciclos/${id}`, { signal, requiresAuth: true }))?.data);
       if (cycle.id !== Number(id)) throw unexpected();
       return cycle;
+    },
+    async createCycle(data, { signal } = {}) {
+      return writtenCycle(await client.request('ciclos', { method: 'POST', body: writeBody(data), signal, requiresAuth: true }), 'POST', 'ciclos');
+    },
+    async updateCycle(id, data, { signal } = {}) {
+      if (!isCatalogId(id)) throw requestError('client');
+      const path = `ciclos/${id}`;
+      return writtenCycle(await client.request(path, { method: 'PATCH', body: writeBody(data), signal, requiresAuth: true }), 'PATCH', path, id);
+    },
+    async transitionCycle(id, currentStatus, { signal } = {}) {
+      if (!isCatalogId(id) || !['PLANEJADO', 'EM_ANDAMENTO'].includes(currentStatus)) throw requestError('client');
+      const path = `ciclos/${id}`;
+      const situacao = currentStatus === 'PLANEJADO' ? 'EM_ANDAMENTO' : 'CONCLUIDO';
+      return writtenCycle(await client.request(path, { method: 'PATCH', body: { situacao }, signal, requiresAuth: true }), 'PATCH', path, id);
+    },
+    async deleteCycle(id, { signal } = {}) {
+      if (!isCatalogId(id)) throw requestError('client');
+      const path = `ciclos/${id}`;
+      const payload = await client.request(path, { method: 'DELETE', signal, requiresAuth: true });
+      if (payload !== null) throw requestError('unexpected_response', { method: 'DELETE', path, status: 200, requestSent: true });
     },
   });
 }

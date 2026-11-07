@@ -59,6 +59,8 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
   if (cycleConnection) {
     const { criarRotasCiclos } = require('./ciclos/rotas');
     app.use('/api/ciclos', authentication.identificar, criarRotasCiclos({ obterConexao: () => cycleConnection }));
+    app.get('/__fixture/cycle-transitions', (req, res) => res.type('html').send('<!doctype html><html lang="pt-BR"><title>Fixture de transições</title><h1>Controle isolado de transições</h1><form method="post" action="/__fixture/cycle-transitions"><button>Liberar ciclo em andamento da fixture</button></form></html>'));
+    app.post('/__fixture/cycle-transitions', (req, res) => { cycleConnection.releaseCurrent(); res.redirect('/__fixture/cycle-transitions'); });
     app.get('/__fixture/cycles', (req, res) => res.type('html').send('<!doctype html><html lang="pt-BR"><title>Fixture dos ciclos</title><h1>Controle dos ciclos de teste</h1><form method="post" action="/__fixture/cycles"><button name="mode" value="empty">Esvaziar ciclos da fixture</button><button name="mode" value="unavailable">Indisponibilizar ciclos da fixture</button><button name="mode" value="normal">Restaurar ciclos da fixture</button></form></html>'));
     app.post('/__fixture/cycles', express.urlencoded({ extended: false }), (req, res) => {
       cycleConnection.setMode(req.body.mode);
