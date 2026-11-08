@@ -16,7 +16,7 @@ import { EmptyState } from './EmptyState.jsx';
 
 const cycles = createCycleService(api);
 
-export function CyclePicker({ open, onClose, onSelect }) {
+export function CyclePicker({ open, onClose, onSelect, title = 'Escolher ciclo para filtrar' }) {
   const [draft, setDraft] = useState('');
   const [search, setSearch] = useState({ q: '', page: 1 });
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
@@ -34,7 +34,7 @@ export function CyclePicker({ open, onClose, onSelect }) {
   const lastPage = result ? Math.max(1, Math.ceil(result.meta.total / result.meta.pageSize)) : 1;
 
   return <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" aria-labelledby="cycle-picker-title" transitionDuration={reducedMotion ? 0 : undefined}>
-    <DialogTitle id="cycle-picker-title">Escolher ciclo para filtrar</DialogTitle>
+    <DialogTitle id="cycle-picker-title">{title}</DialogTitle>
     <DialogContent className="book-picker-content">
       <TextField autoFocus fullWidth label="Buscar ciclo por nome" value={draft} onChange={(event) => setDraft(event.target.value)} error={!valid} helperText={valid ? 'Busque ou navegue pelas páginas para acessar todos os ciclos.' : 'Use no máximo 120 caracteres.'} />
       {!valid ? null : busy ? <LoadingState message="Consultando ciclos…" /> : resource.status === 'error' ? <ErrorState title="Não foi possível consultar os ciclos" message={resource.error.policy?.userMessage} onRetry={resource.reload} />

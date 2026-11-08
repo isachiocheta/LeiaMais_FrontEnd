@@ -8,6 +8,16 @@ import { isMeetingInstant } from '../utils/meeting-instants.js';
 const positive = (value) => Number.isInteger(value) && value > 0 && value <= 2147483647;
 const text = (value) => typeof value === 'string' && value.trim().length > 0;
 const unexpected = () => requestError('unexpected_response', { status: 200 });
+const formFields = ['cicloId', 'titulo', 'inicioEm', 'local', 'descricao'];
+const writeBody = (data) => Object.fromEntries(formFields.filter((field) => Object.hasOwn(data, field)).map((field) => [field, data[field]]));
+
+function writtenMeeting(payload, method, path, id) {
+  try {
+    const result = readMeeting(payload?.data);
+    if (id !== undefined && result.id !== Number(id)) throw unexpected();
+    return result;
+  } catch { throw requestError('unexpected_response', { method, path, status: method === 'POST' ? 201 : 200, requestSent: true }); }
+}
 
 function readMeeting(value) {
   if (!value || !positive(value.id) || !positive(value.cicloId) || !text(value.titulo) || !isMeetingInstant(value.inicioEm)
@@ -38,6 +48,25 @@ export function createMeetingService(client) {
       const meeting = readMeeting((await client.request(`encontros/${id}`, { signal, requiresAuth: true }))?.data);
       if (meeting.id !== Number(id)) throw unexpected();
       return (await withBooks([meeting], { signal }))[0];
+    },
+    async createMeeting(data, { signal } = {}) {
+      return writtenMeeting(await client.request('encontros', { method: 'POST', body: writeBody(data), signal, requiresAuth: true }), 'POST', 'encontros');
+    },
+    async updateMeeting(id, data, { signal } = {}) {
+      if (!isCatalogId(id)) throw requestError('client');
+      const path = `encontros/${id}`;
+      return writtenMeeting(await client.request(path, { method: 'PATCH', body: writeBody(data), signal, requiresAuth: true }), 'PATCH', path, id);
+    },
+    async setMeetingStatus(id, situacao, { signal } = {}) {
+      if (!isCatalogId(id) || !['REALIZADO', 'CANCELADO'].includes(situacao)) throw requestError('client');
+      const path = `encontros/${id}`;
+      return writtenMeeting(await client.request(path, { method: 'PATCH', body: { situacao }, signal, requiresAuth: true }), 'PATCH', path, id);
+    },
+    async deleteMeeting(id, { signal } = {}) {
+      if (!isCatalogId(id)) throw requestError('client');
+      const path = `encontros/${id}`;
+      const payload = await client.request(path, { method: 'DELETE', signal, requiresAuth: true });
+      if (payload !== null) throw requestError('unexpected_response', { method: 'DELETE', path, status: 200, requestSent: true });
     },
   });
 }

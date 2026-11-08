@@ -4,7 +4,7 @@ import { attachParticipationData } from './participation-data.js';
 
 export const backendPackage = fileURLToPath(new URL('../../../../leia+_backend/backend/package.json', import.meta.url));
 
-export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, catalogConnection, cycleConnection, meetingConnection, readingFixture = false, seedReadings = false } = {}) {
+export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, catalogConnection, cycleConnection, meetingConnection, meetingNow = Date.now, readingFixture = false, seedReadings = false } = {}) {
   const require = createRequire(backendPackage);
   const express = require('express');
   const bcrypt = require('bcrypt');
@@ -60,7 +60,7 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
   app.use('/api/auth', authentication.roteador);
   if (meetingConnection) {
     const { criarRotasEncontros } = require('./encontros/rotas');
-    app.use('/api/encontros', authentication.identificar, criarRotasEncontros({ obterConexao: () => meetingConnection }));
+    app.use('/api/encontros', authentication.identificar, criarRotasEncontros({ obterConexao: () => meetingConnection, agora: meetingNow }));
     app.get('/__fixture/meetings', (req, res) => res.type('html').send('<!doctype html><html lang="pt-BR"><title>Fixture da agenda</title><h1>Controle da agenda de teste</h1><form method="post" action="/__fixture/meetings"><button name="mode" value="empty">Esvaziar agenda da fixture</button><button name="mode" value="unavailable">Indisponibilizar agenda da fixture</button><button name="mode" value="normal">Restaurar agenda da fixture</button></form></html>'));
     app.post('/__fixture/meetings', express.urlencoded({ extended: false }), (req, res) => { meetingConnection.setMode(req.body.mode); res.redirect('/__fixture/meetings'); });
   }

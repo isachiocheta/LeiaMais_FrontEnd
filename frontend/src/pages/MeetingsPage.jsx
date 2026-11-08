@@ -1,5 +1,6 @@
-import { useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { useCallback, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
@@ -19,11 +20,16 @@ import { StatusBadge } from '../components/StatusBadge.jsx';
 import { LoadingState } from '../components/LoadingState.jsx';
 import { EmptyState } from '../components/EmptyState.jsx';
 import { ErrorState } from '../components/ErrorState.jsx';
+import { PrimaryButton } from '../components/PrimaryButton.jsx';
+import { useAuth } from '../hooks/useAuth.js';
 
 const meetings = createMeetingService(api);
 const paginationLabel = (type, page, selected) => ({ page: `${selected ? 'Página atual, página' : 'Ir para a página'} ${page}`, next: 'Próxima página', previous: 'Página anterior' })[type];
 
 export function MeetingsPage() {
+  const { user } = useAuth();
+  const location = useLocation();
+  const admin = user?.perfil === 'ADMIN_CLUBE';
   const query = useMeetingFilters();
   const { filters } = query;
   const key = meetingQuery(filters).toString();
@@ -34,10 +40,14 @@ export function MeetingsPage() {
   const filtered = Boolean(filters.q || filters.cicloId || filters.situacao);
   const sizes = [...new Set([6, 12, 24, 48, filters.pageSize])].filter((size) => Number.isInteger(size) && size >= 1 && size <= 50).sort((a, b) => a - b);
   const pages = result ? Math.max(1, Math.ceil(result.meta.total / filters.pageSize)) : 1;
+  const adjustingPage = query.valid && !query.waiting && resource.status === 'success' && filters.page > pages;
+  useEffect(() => { if (adjustingPage) query.goPage(pages, { replace: true, flushSync: false }); }, [adjustingPage, pages, query.goPage]);
 
   return <ContentContainer className="inner-page meetings-page">
     <ContentCard className="catalog-shell meetings-shell">
       <PageHeader eyebrow="ENCONTRE A GENTE ENTRE PÁGINAS" title="Agenda do clube" description="Consulte datas, locais e informações dos encontros de leitura." />
+      {location.state?.meetingAction === 'deleted' && <Alert severity="success" className="meeting-notice">Encontro e inscrições associadas excluídos.</Alert>}
+      {admin && <div className="meeting-list-admin"><PrimaryButton component={Link} to={`/admin/encontros/novo?${key}`}>Novo encontro</PrimaryButton></div>}
       <p className="meeting-zone-note">Horários de São Paulo · America/Sao_Paulo.</p>
       <p className="meeting-status-explanation">A situação é registrada pelo clube. Um horário que já passou não torna o encontro Realizado automaticamente.</p>
       <section className="catalog-filter-section" aria-labelledby="meeting-filters-title">
@@ -54,7 +64,7 @@ export function MeetingsPage() {
           <MeetingCycleFilter value={filters.cicloId} onChange={(cicloId) => query.update({ cicloId })} error={query.errors.cicloId} />
         </div>
       </section>
-      {!query.valid ? <ErrorState title="Confira os filtros do endereço" message={Object.values(query.errors).join(' ')} onRetry={query.clear} retryLabel="Limpar filtros" /> : query.waiting || resource.status === 'loading' ? <LoadingState message="Consultando agenda…" /> : resource.status === 'error' ? <ErrorState title="Não foi possível carregar a agenda" message={resource.error.policy?.userMessage} onRetry={resource.reload} />
+      {!query.valid ? <ErrorState title="Confira os filtros do endereço" message={Object.values(query.errors).join(' ')} onRetry={query.clear} retryLabel="Limpar filtros" /> : query.waiting || resource.status === 'loading' || adjustingPage ? <LoadingState message="Consultando agenda…" /> : resource.status === 'error' ? <ErrorState title="Não foi possível carregar a agenda" message={resource.error.policy?.userMessage} onRetry={resource.reload} />
         : <section aria-labelledby="meeting-results-title">
           <div className="catalog-results-heading"><h2 id="meeting-results-title">Encontros do clube</h2><p role="status">{result.meta.total.toLocaleString('pt-BR')} {result.meta.total === 1 ? 'encontro encontrado' : 'encontros encontrados'}</p></div>
           {!result.data.length ? <EmptyState title={filters.page > pages ? 'Não há encontros nesta página' : filtered ? 'Nenhum encontro corresponde aos filtros' : 'Nenhum encontro cadastrado'} description={filtered ? 'Experimente outro título, ciclo ou situação.' : 'Os encontros aparecerão aqui quando forem cadastrados.'} action={filters.page > pages ? <Button onClick={() => query.goPage(pages)}>Ir para a última página disponível</Button> : filtered ? <Button onClick={query.clear}>Limpar filtros</Button> : null} />
@@ -67,6 +77,7 @@ export function MeetingsPage() {
                   {meeting.situacao === 'CANCELADO' && <p className="meeting-cancelled-note">Este encontro está cancelado.</p>}
                   <p className="meeting-description">{meeting.descricao?.trim() ? meeting.descricao : 'Descrição não informada.'}</p>
                   <div className="meeting-related"><p><span>Ciclo:</span> <Link to={`/ciclos/${meeting.cicloId}`}>{meeting.ciclo.nome}</Link></p><p><span>Livro:</span> <Link to={`/catalogo/${meeting.livro.id}`}>{meeting.livro.titulo}</Link></p></div>
+                  {admin && <div className="meeting-card-admin"><Link className="text-link" to={`/admin/encontros/${meeting.id}/editar?${key}`}>Editar encontro</Link><Link className="text-link" to={`/encontros/${meeting.id}?${key}`} onClick={rememberScroll}>Administrar encontro</Link></div>}
                 </div>
               </ContentCard>;
             })}</div>}

@@ -14,17 +14,42 @@ export function createMeetingConnection(cycles) {
     return { id, cicloId, titulo: `${id <= 9 ? 'Roda' : 'Conversa'} de leitura de teste ${String(id).padStart(2, '0')}`, inicioEm, local: `Sala de teste ${id}`, descricao: id === 5 ? null : 'Descrição do encontro de teste.\n<b>Texto literal, sem HTML.</b>', situacao, quantidadeInscritos: id % 4, criadoEm: '2020-01-01T12:00:00.000Z', atualizadoEm: '2026-01-01T12:00:00.000Z' };
   });
   const calls = [];
+  const registrations = meetings.flatMap((meeting) => Array.from({ length: meeting.quantidadeInscritos }, (_, index) => ({ id: meeting.id * 10 + index, encontroId: meeting.id, usuarioId: 100 + index })));
+  let nextId = 19;
   let mode = 'normal';
+  function available() { if (mode === 'unavailable') throw new ConnectionError(new Error('Encontros indisponíveis na fixture.')); }
+  function syncCycles() { cycles.meetings.splice(0, cycles.meetings.length, ...meetings.map(({ id, cicloId, situacao, inicioEm }) => ({ id, cicloId, situacao, inicioEm }))); }
+  function model(meeting) {
+    if (!meeting) return null;
+    return { ...meeting, inicioEm: new Date(meeting.inicioEm),
+      async update(data) { available(); Object.assign(meeting, data, { inicioEm: data.inicioEm instanceof Date ? data.inicioEm.toISOString() : data.inicioEm ?? meeting.inicioEm, atualizadoEm: new Date().toISOString() }); syncCycles(); },
+      async destroy() { available(); meetings.splice(meetings.indexOf(meeting), 1); registrations.splice(0, registrations.length, ...registrations.filter((row) => row.encontroId !== meeting.id)); syncCycles(); },
+    };
+  }
+  const meetingModel = {
+    async findByPk(id) { available(); return model(meetings.find((meeting) => meeting.id === id)); },
+    async findOne({ where }) { available(); return model(meetings.find((meeting) => meeting.cicloId === where.cicloId && meeting.situacao === where.situacao)); },
+    async create(data) { available(); const now = new Date().toISOString(); const meeting = { descricao: null, ...data, id: nextId++, inicioEm: data.inicioEm.toISOString(), quantidadeInscritos: 0, criadoEm: now, atualizadoEm: now }; meetings.push(meeting); syncCycles(); return model(meeting); },
+  };
+  cycles.models.Encontro = meetingModel;
+  syncCycles();
   function project(meeting) {
     const cycle = cycles.cycles.find((cycle) => cycle.id === meeting.cicloId);
-    return { ...meeting, ciclo: { id: cycle.id, nome: cycle.nome, situacao: cycle.situacao } };
+    return { ...meeting, quantidadeInscritos: registrations.filter((row) => row.encontroId === meeting.id).length, ciclo: { id: cycle.id, nome: cycle.nome, situacao: cycle.situacao } };
   }
   return {
-    meetings, calls,
+    meetings, calls, registrations,
+    models: { ...cycles.models, Encontro: meetingModel, InscricaoEncontro: { async findOne({ where }) { available(); return registrations.find((row) => row.encontroId === where.encontroId) ?? null; } } },
+    async transaction(options, task) {
+      available();
+      const snapshot = structuredClone(meetings); const links = structuredClone(registrations);
+      try { return await cycles.transaction(options, task); }
+      catch (error) { meetings.splice(0, meetings.length, ...snapshot); registrations.splice(0, registrations.length, ...links); syncCycles(); throw error; }
+    },
     setMode(value) { if (['normal', 'empty', 'unavailable'].includes(value)) mode = value; },
     async query(sql, { bind = {} } = {}) {
       calls.push({ sql, bind: { ...bind } });
-      if (mode === 'unavailable') throw new ConnectionError(new Error('Encontros indisponíveis na fixture.'));
+      available();
       if (!sql.includes('FROM encontros e')) throw new Error('Consulta fora do cenário de encontros.');
       let selected = mode === 'empty' ? [] : [...meetings];
       if (bind.id !== undefined) return structuredClone(selected.filter((meeting) => meeting.id === bind.id).map(project));

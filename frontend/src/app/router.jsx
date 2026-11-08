@@ -111,6 +111,16 @@ export const router = createBrowserRouter([
         ],
       },
       {
+        path: 'admin/encontros',
+        element: <RequireRole allowedRoles={['ADMIN_CLUBE']} />,
+        ErrorBoundary: RouteErrorPage,
+        handle: { requiresAuth: true },
+        children: [
+          { path: 'novo', lazy: async () => ({ Component: (await import('../pages/MeetingEditorPage.jsx')).MeetingEditorPage }), handle: { title: 'Novo encontro | Leia+' } },
+          { path: ':id/editar', lazy: async () => ({ Component: (await import('../pages/MeetingEditorPage.jsx')).MeetingEditorPage }), handle: { title: 'Editar encontro | Leia+' } },
+        ],
+      },
+      {
         path: 'admin/ciclos',
         element: <RequireRole allowedRoles={['ADMIN_CLUBE']} />,
         ErrorBoundary: RouteErrorPage,
