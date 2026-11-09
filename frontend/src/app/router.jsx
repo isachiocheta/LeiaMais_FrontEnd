@@ -152,6 +152,13 @@ export const router = createBrowserRouter([
         ],
       },
       {
+        path: 'admin/dashboard',
+        element: <RequireRole allowedRoles={['ADMIN_CLUBE']} />,
+        ErrorBoundary: RouteErrorPage,
+        handle: { title: 'Painel administrativo | Leia+', requiresAuth: true },
+        children: [{ index: true, lazy: async () => ({ Component: (await import('../pages/AdminDashboardPage.jsx')).AdminDashboardPage }) }],
+      },
+      {
         path: 'admin/leitores',
         element: <RequireRole allowedRoles={['ADMIN_CLUBE']} />,
         ErrorBoundary: RouteErrorPage,

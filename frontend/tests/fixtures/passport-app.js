@@ -2,10 +2,11 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { attachParticipationData } from './participation-data.js';
 import { attachUserAdministration } from './user-admin-data.js';
+import { createDashboardConnection } from './dashboard-data.js';
 
 export const backendPackage = fileURLToPath(new URL('../../../../leia+_backend/backend/package.json', import.meta.url));
 
-export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, catalogConnection, cycleConnection, meetingConnection, meetingNow = Date.now, readingFixture = false, seedReadings = false, userAdminFixture = false, seedReaders = false } = {}) {
+export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, catalogConnection, cycleConnection, meetingConnection, meetingNow = Date.now, readingFixture = false, seedReadings = false, userAdminFixture = false, seedReaders = false, dashboardFixture = false, dashboardNow = Date.now } = {}) {
   const require = createRequire(backendPackage);
   const express = require('express');
   const bcrypt = require('bcrypt');
@@ -52,6 +53,7 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
   };
   const readingData = readingFixture ? attachParticipationData(cycleConnection, users, { seed: seedReadings }) : null;
   const userAdministration = userAdminFixture ? attachUserAdministration(model, users, { seed: seedReaders }) : null;
+  const dashboardData = dashboardFixture ? createDashboardConnection({ users, books: catalogConnection.books, cycles: cycleConnection.cycles, meetings: meetingConnection.meetings, participations: readingData.rows }) : null;
   if (meetingConnection && readingFixture) Object.assign(meetingConnection.models, { Usuario: cycleConnection.models.Usuario, ParticipacaoLeitura: cycleConnection.models.ParticipacaoLeitura });
   const authentication = criarAutenticacao({
     configuracao: { ...carregarConfiguracaoSessao({ NODE_ENV: 'test', SESSION_SECRET: 'Segredo exclusivo da fixture frontend sem banco real', SESSION_COOKIE_SECURE: 'false' }), nomeCookie: 'leia.fixture.sid' },
@@ -61,6 +63,12 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
   const app = express();
   configurarHttp(app, { origemPermitida: 'http://localhost:5173' });
   app.use('/api/auth', authentication.roteador);
+  if (dashboardFixture) {
+    const { criarRotasDashboard } = require('./dashboard/rotas');
+    app.use('/api/dashboard', authentication.identificar, criarRotasDashboard({ obterConexao: () => dashboardData, agora: dashboardNow }));
+    app.get('/__fixture/dashboard', (req, res) => res.type('html').send('<!doctype html><html lang="pt-BR"><title>Fixture do painel</title><h1>Cenários isolados do dashboard</h1><form method="post" action="/__fixture/dashboard"><button name="scenario" value="normal">Restaurar painel da fixture</button><button name="scenario" value="unavailable">Indisponibilizar painel da fixture</button><button name="scenario" value="no-current">Usar cenário sem ciclo atual</button><button name="scenario" value="zero-participants">Usar ciclo sem participantes</button><button name="scenario" value="expired">Usar ciclo fora do período</button><button name="scenario" value="empty">Usar catálogo e ciclos vazios</button></form></html>'));
+    app.post('/__fixture/dashboard', express.urlencoded({ extended: false }), (req, res) => { dashboardData.setScenario(req.body.scenario); res.redirect('/__fixture/dashboard'); });
+  }
   if (userAdminFixture) {
     const { criarRotasUsuarios } = require('./usuarios/rotas');
     app.use('/api/usuarios', authentication.identificar, criarRotasUsuarios({ obterUsuario: () => model }));
@@ -108,7 +116,7 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
   app.use(rotaNaoEncontrada);
   app.use(tratarErros);
   return {
-    app, password, sessions, users, readingData, userAdministration, close: authentication.encerrar,
+    app, password, sessions, users, readingData, userAdministration, dashboardData, close: authentication.encerrar,
     advance: (milliseconds) => { offset += milliseconds; },
     setRegistrationUnavailable: (value) => { registrationUnavailable = value; },
     verifyPassword: (email, candidate) => bcrypt.compare(candidate, users.find((user) => user.email === email).senhaHash),

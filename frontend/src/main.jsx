@@ -14,6 +14,7 @@ import './styles/cycles.css';
 import './styles/readings.css';
 import './styles/meetings.css';
 import './styles/readers.css';
+import './styles/dashboard.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
