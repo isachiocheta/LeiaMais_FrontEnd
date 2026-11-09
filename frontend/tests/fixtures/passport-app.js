@@ -1,10 +1,11 @@
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { attachParticipationData } from './participation-data.js';
+import { attachUserAdministration } from './user-admin-data.js';
 
 export const backendPackage = fileURLToPath(new URL('../../../../leia+_backend/backend/package.json', import.meta.url));
 
-export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, catalogConnection, cycleConnection, meetingConnection, meetingNow = Date.now, readingFixture = false, seedReadings = false } = {}) {
+export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, catalogConnection, cycleConnection, meetingConnection, meetingNow = Date.now, readingFixture = false, seedReadings = false, userAdminFixture = false, seedReaders = false } = {}) {
   const require = createRequire(backendPackage);
   const express = require('express');
   const bcrypt = require('bcrypt');
@@ -50,6 +51,7 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
     },
   };
   const readingData = readingFixture ? attachParticipationData(cycleConnection, users, { seed: seedReadings }) : null;
+  const userAdministration = userAdminFixture ? attachUserAdministration(model, users, { seed: seedReaders }) : null;
   if (meetingConnection && readingFixture) Object.assign(meetingConnection.models, { Usuario: cycleConnection.models.Usuario, ParticipacaoLeitura: cycleConnection.models.ParticipacaoLeitura });
   const authentication = criarAutenticacao({
     configuracao: { ...carregarConfiguracaoSessao({ NODE_ENV: 'test', SESSION_SECRET: 'Segredo exclusivo da fixture frontend sem banco real', SESSION_COOKIE_SECURE: 'false' }), nomeCookie: 'leia.fixture.sid' },
@@ -59,6 +61,12 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
   const app = express();
   configurarHttp(app, { origemPermitida: 'http://localhost:5173' });
   app.use('/api/auth', authentication.roteador);
+  if (userAdminFixture) {
+    const { criarRotasUsuarios } = require('./usuarios/rotas');
+    app.use('/api/usuarios', authentication.identificar, criarRotasUsuarios({ obterUsuario: () => model }));
+    app.get('/__fixture/users', (req, res) => res.type('html').send('<!doctype html><html lang="pt-BR"><title>Fixture dos leitores</title><h1>Controle dos leitores de teste</h1><form method="post" action="/__fixture/users"><button name="mode" value="empty">Esvaziar leitores da fixture</button><button name="mode" value="unavailable">Indisponibilizar leitores da fixture</button><button name="mode" value="normal">Restaurar leitores da fixture</button></form></html>'));
+    app.post('/__fixture/users', express.urlencoded({ extended: false }), (req, res) => { userAdministration.setMode(req.body.mode); res.redirect('/__fixture/users'); });
+  }
   if (meetingConnection) {
     const { criarRotasEncontros } = require('./encontros/rotas');
     app.use('/api/encontros', authentication.identificar, criarRotasEncontros({ obterConexao: () => meetingConnection, agora: meetingNow }));
@@ -100,7 +108,7 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
   app.use(rotaNaoEncontrada);
   app.use(tratarErros);
   return {
-    app, password, sessions, users, readingData, close: authentication.encerrar,
+    app, password, sessions, users, readingData, userAdministration, close: authentication.encerrar,
     advance: (milliseconds) => { offset += milliseconds; },
     setRegistrationUnavailable: (value) => { registrationUnavailable = value; },
     verifyPassword: (email, candidate) => bcrypt.compare(candidate, users.find((user) => user.email === email).senhaHash),

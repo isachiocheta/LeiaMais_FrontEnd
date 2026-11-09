@@ -25,6 +25,7 @@ export function MemberPage() {
           <Link className="text-link" to="/minha-agenda">Minha agenda</Link>
           <Link className="text-link" to="/minhas-leituras">Histórico de leituras</Link>
           {user.perfil === 'ADMIN_CLUBE' && <Link className="text-link" to="/admin/livros">Administrar livros</Link>}
+          {user.perfil === 'ADMIN_CLUBE' && <Link className="text-link" to="/admin/leitores">Administrar leitores</Link>}
           <Link className="text-link" to="/sobre">Sobre o clube</Link>
           <Link className="text-link" to="/">Página inicial <span aria-hidden="true">↗</span></Link>
         </div>

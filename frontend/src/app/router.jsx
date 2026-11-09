@@ -152,6 +152,13 @@ export const router = createBrowserRouter([
         ],
       },
       {
+        path: 'admin/leitores',
+        element: <RequireRole allowedRoles={['ADMIN_CLUBE']} />,
+        ErrorBoundary: RouteErrorPage,
+        handle: { title: 'Administrar leitores | Leia+', requiresAuth: true, preserveSearchFocus: true },
+        children: [{ index: true, lazy: async () => ({ Component: (await import('../pages/AdminReadersPage.jsx')).AdminReadersPage }) }],
+      },
+      {
         path: 'admin/livros',
         element: <RequireRole allowedRoles={['ADMIN_CLUBE']} />,
         ErrorBoundary: RouteErrorPage,
