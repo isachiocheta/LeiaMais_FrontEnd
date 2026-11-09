@@ -43,6 +43,16 @@
 .meeting-selected-cycle { font-weight: 600; overflow-wrap: anywhere; }
 .meeting-cycle-period { margin-block: var(--space-3); font-size: 13px; line-height: 1.8; }
 .meeting-cycle-choice > .MuiButton-root { margin-block: var(--space-4) var(--space-3); }
+.meeting-registration { background: var(--color-sand); border: var(--border); border-radius: var(--radius-medium); padding: var(--space-5); margin-top: var(--space-6); }
+.meeting-registration h2 { font-size: 24px; margin-bottom: var(--space-4); }
+.meeting-registration h2:focus { outline: 3px solid var(--color-blueText); outline-offset: 4px; }
+.meeting-registration > p { font-size: 14px; line-height: 1.9; margin-block: var(--space-4); }
+.meeting-registration .registration-state { font-weight: 600; }
+.meeting-registration .MuiAlert-root { margin-block: var(--space-4); }
+.meeting-registration-count { margin-block: var(--space-4); font-size: 14px; }
+.personal-agenda-page > .MuiTextField-root { width: min(100%, 360px); }
+.personal-agenda-page .reading-history-card > .text-link { display: inline-block; margin-top: var(--space-5); }
+.personal-agenda-page .status-badge { margin-bottom: var(--space-3); }
 @media (max-width: 1300px) { .site-header .header-caption { display: none; } }
 @media (max-width: 1000px) { .meeting-cycle-filter { flex-wrap: wrap; }.meeting-cycle-filter > .MuiTextField-root { width: 100%; } }
 @media (max-width: 700px) {

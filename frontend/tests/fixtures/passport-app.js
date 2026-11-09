@@ -50,6 +50,7 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
     },
   };
   const readingData = readingFixture ? attachParticipationData(cycleConnection, users, { seed: seedReadings }) : null;
+  if (meetingConnection && readingFixture) Object.assign(meetingConnection.models, { Usuario: cycleConnection.models.Usuario, ParticipacaoLeitura: cycleConnection.models.ParticipacaoLeitura });
   const authentication = criarAutenticacao({
     configuracao: { ...carregarConfiguracaoSessao({ NODE_ENV: 'test', SESSION_SECRET: 'Segredo exclusivo da fixture frontend sem banco real', SESSION_COOKIE_SECURE: 'false' }), nomeCookie: 'leia.fixture.sid' },
     pool, obterUsuario: () => model, agora: () => Date.now() + offset,
@@ -61,6 +62,8 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
   if (meetingConnection) {
     const { criarRotasEncontros } = require('./encontros/rotas');
     app.use('/api/encontros', authentication.identificar, criarRotasEncontros({ obterConexao: () => meetingConnection, agora: meetingNow }));
+    const { criarRotasMinhasInscricoes } = require('./inscricoes/rotas');
+    app.use('/api/me/inscricoes', authentication.identificar, criarRotasMinhasInscricoes({ obterConexao: () => meetingConnection, agora: meetingNow }));
     app.get('/__fixture/meetings', (req, res) => res.type('html').send('<!doctype html><html lang="pt-BR"><title>Fixture da agenda</title><h1>Controle da agenda de teste</h1><form method="post" action="/__fixture/meetings"><button name="mode" value="empty">Esvaziar agenda da fixture</button><button name="mode" value="unavailable">Indisponibilizar agenda da fixture</button><button name="mode" value="normal">Restaurar agenda da fixture</button></form></html>'));
     app.post('/__fixture/meetings', express.urlencoded({ extended: false }), (req, res) => { meetingConnection.setMode(req.body.mode); res.redirect('/__fixture/meetings'); });
   }

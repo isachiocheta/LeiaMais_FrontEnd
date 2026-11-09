@@ -58,6 +58,13 @@ export const router = createBrowserRouter([
         handle: { title: 'Minha área | Leia+', requiresAuth: true },
       },
       {
+        path: 'minha-agenda',
+        element: <RequireRole allowedRoles={['ADMIN_CLUBE', 'LEITOR']} />,
+        ErrorBoundary: RouteErrorPage,
+        handle: { title: 'Minha agenda | Leia+', requiresAuth: true, preserveSearchFocus: true },
+        children: [{ index: true, lazy: async () => ({ Component: (await import('../pages/PersonalAgendaPage.jsx')).PersonalAgendaPage }) }],
+      },
+      {
         path: 'minhas-leituras',
         element: <RequireRole allowedRoles={['ADMIN_CLUBE', 'LEITOR']} />,
         ErrorBoundary: RouteErrorPage,
@@ -116,6 +123,7 @@ export const router = createBrowserRouter([
         ErrorBoundary: RouteErrorPage,
         handle: { requiresAuth: true },
         children: [
+          { path: ':id/inscritos', lazy: async () => ({ Component: (await import('../pages/MeetingRegistrantsPage.jsx')).MeetingRegistrantsPage }), handle: { title: 'Inscritos no encontro | Leia+' } },
           { path: 'novo', lazy: async () => ({ Component: (await import('../pages/MeetingEditorPage.jsx')).MeetingEditorPage }), handle: { title: 'Novo encontro | Leia+' } },
           { path: ':id/editar', lazy: async () => ({ Component: (await import('../pages/MeetingEditorPage.jsx')).MeetingEditorPage }), handle: { title: 'Editar encontro | Leia+' } },
         ],

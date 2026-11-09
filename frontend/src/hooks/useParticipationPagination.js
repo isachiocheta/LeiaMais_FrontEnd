@@ -8,7 +8,7 @@ export function useParticipationPagination() {
   const parsed = useMemo(() => readParticipationQuery(new URLSearchParams(search)), [search]);
   return {
     ...parsed, key: search,
-    goPage: (page) => setParams(participationQuery({ ...parsed.filters, page })),
+    goPage: (page, options) => setParams(participationQuery({ ...parsed.filters, page }), options),
     changeSize: (pageSize) => setParams(participationQuery({ page: 1, pageSize })),
     reset: () => setParams(new URLSearchParams()),
   };

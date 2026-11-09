@@ -22,11 +22,13 @@ import { EmptyState } from '../components/EmptyState.jsx';
 import { ErrorState } from '../components/ErrorState.jsx';
 import { PrimaryButton } from '../components/PrimaryButton.jsx';
 import { useAuth } from '../hooks/useAuth.js';
+import { useMeetingRevision } from '../hooks/useMeetingRevision.js';
 
 const meetings = createMeetingService(api);
 const paginationLabel = (type, page, selected) => ({ page: `${selected ? 'Página atual, página' : 'Ir para a página'} ${page}`, next: 'Próxima página', previous: 'Página anterior' })[type];
 
 export function MeetingsPage() {
+  const revision = useMeetingRevision();
   const { user } = useAuth();
   const location = useLocation();
   const admin = user?.perfil === 'ADMIN_CLUBE';
@@ -34,7 +36,7 @@ export function MeetingsPage() {
   const { filters } = query;
   const key = meetingQuery(filters).toString();
   const load = useCallback((options) => meetings.listMeetings(filters, options), [key]);
-  const resource = useApiResource(key, load, query.valid && !query.waiting);
+  const resource = useApiResource(`${key}:${revision}`, load, query.valid && !query.waiting);
   const rememberScroll = useCatalogScroll(query.valid && !query.waiting && resource.status !== 'loading');
   const result = resource.data;
   const filtered = Boolean(filters.q || filters.cicloId || filters.situacao);
@@ -46,6 +48,7 @@ export function MeetingsPage() {
   return <ContentContainer className="inner-page meetings-page">
     <ContentCard className="catalog-shell meetings-shell">
       <PageHeader eyebrow="ENCONTRE A GENTE ENTRE PÁGINAS" title="Agenda do clube" description="Consulte datas, locais e informações dos encontros de leitura." />
+      <Link className="text-link" to="/minha-agenda">Consultar minha agenda →</Link>
       {location.state?.meetingAction === 'deleted' && <Alert severity="success" className="meeting-notice">Encontro e inscrições associadas excluídos.</Alert>}
       {admin && <div className="meeting-list-admin"><PrimaryButton component={Link} to={`/admin/encontros/novo?${key}`}>Novo encontro</PrimaryButton></div>}
       <p className="meeting-zone-note">Horários de São Paulo · America/Sao_Paulo.</p>

@@ -22,6 +22,7 @@ export function MemberPage() {
           <PrimaryButton component={Link} to="/catalogo">Explorar catálogo</PrimaryButton>
           <Link className="text-link" to="/ciclos">Ciclos de leitura</Link>
           <Link className="text-link" to="/encontros">Agenda do clube</Link>
+          <Link className="text-link" to="/minha-agenda">Minha agenda</Link>
           <Link className="text-link" to="/minhas-leituras">Histórico de leituras</Link>
           {user.perfil === 'ADMIN_CLUBE' && <Link className="text-link" to="/admin/livros">Administrar livros</Link>}
           <Link className="text-link" to="/sobre">Sobre o clube</Link>
