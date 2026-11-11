@@ -10,7 +10,7 @@ const positive = (v) => Number.isInteger(v) && v > 0 && v <= 2147483647;
 const text = (v) => typeof v === 'string' && v.trim().length > 0;
 const unexpected = () => requestError('unexpected_response', { status: 200 });
 
-function readRegistration(v) {
+export function readRegistration(v) {
   const e = v?.encontro, c = v?.ciclo, b = v?.livro;
   if (!v || !positive(v.id) || !positive(v.encontroId) || !isMeetingInstant(v.criadoEm) || !isMeetingInstant(v.atualizadoEm)
     || !e || e.id !== v.encontroId || !text(e.titulo) || !text(e.local) || !isMeetingInstant(e.inicioEm) || !MEETING_STATUSES.includes(e.situacao)

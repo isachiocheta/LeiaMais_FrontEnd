@@ -1,13 +1,17 @@
+import { lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { ContentContainer } from '../components/ContentContainer.jsx';
 import { ContentCard } from '../components/ContentCard.jsx';
 import { PageHeader } from '../components/PageHeader.jsx';
 import { PrimaryButton } from '../components/PrimaryButton.jsx';
-import { CurrentReading } from '../components/CurrentReading.jsx';
+import { LoadingState } from '../components/LoadingState.jsx';
+
+const ReaderHome = lazy(() => import('./ReaderHomePage.jsx').then((module) => ({ default: module.ReaderHomePage })));
 
 export function MemberPage() {
   const { user } = useAuth();
+  if (user.perfil === 'LEITOR') return <Suspense fallback={<ContentContainer className="inner-page"><LoadingState message="Abrindo seu acompanhamento de leitura…" /></ContentContainer>}><ReaderHome key={user.id} user={user} /></Suspense>;
   return (
     <ContentContainer className="inner-page member-page">
       <PageHeader eyebrow="SEU ESPAÇO NO LEIA+" title={`Olá, ${user.nome}!`} description="Você está conectado ao clube." />
@@ -31,7 +35,6 @@ export function MemberPage() {
           <Link className="text-link" to="/">Página inicial <span aria-hidden="true">↗</span></Link>
         </div>
       </ContentCard>
-      {user.perfil === 'LEITOR' && <CurrentReading />}
     </ContentContainer>
   );
 }

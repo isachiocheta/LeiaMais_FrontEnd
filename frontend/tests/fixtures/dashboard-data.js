@@ -1,9 +1,9 @@
 import { createRequire } from 'node:module';
 import { backendPackage } from './passport-app.js';
 
-export function createDashboardConnection({ users, books, cycles, meetings, participations }) {
+export function createDashboardConnection({ users, books, cycles, meetings, participations, registrations = [] }) {
   const { ConnectionError } = createRequire(backendPackage)('sequelize');
-  const live = { users, books, cycles, meetings, participations };
+  const live = { users, books, cycles, meetings, participations, registrations };
   const initial = structuredClone(live);
   let unavailable = false;
   const calls = [], transactions = [];
@@ -39,6 +39,29 @@ export function createDashboardConnection({ users, books, cycles, meetings, part
       if (!transaction?.readOnly) throw new Error('Dashboard deve usar transação somente de leitura.');
       if (sql === 'SET TRANSACTION READ ONLY') return [];
       const r = records(transaction);
+      if (sql.includes('AS "totalParticipacoes"')) {
+        const own = r.participations.filter((p) => p.usuarioId === bind.usuario && r.cycles.some((c) => c.id === p.cicloId));
+        return [{ totalParticipacoes: own.length, leiturasConcluidas: own.filter((p) => { const c = r.cycles.find((c) => c.id === p.cicloId), b = r.books.find((b) => b.id === c.livroId); return p.paginaAtual === b.totalPaginas; }).length }];
+      }
+      if (sql.includes('FROM participacoes_leitura p') && sql.includes('AS "paginaAtual"')) {
+        return r.participations.filter((p) => p.usuarioId === bind.usuario && (bind.ciclo == null || p.cicloId === bind.ciclo)).sort((a, b) => b.id - a.id).slice(bind.deslocamento, bind.deslocamento + bind.limite).map((p) => {
+          const c = r.cycles.find((c) => c.id === p.cicloId), b = r.books.find((b) => b.id === c.livroId);
+          return { id: p.id, cicloId: p.cicloId, paginaAtual: p.paginaAtual, percentual: Math.round(p.paginaAtual * 10000 / b.totalPaginas) / 100, concluida: p.paginaAtual === b.totalPaginas, concluidaEm: p.concluidaEm,
+            criadoEm: p.criadoEm, atualizadoEm: p.atualizadoEm, livro: { id: b.id, titulo: b.titulo, totalPaginas: b.totalPaginas }, ciclo: { id: c.id, nome: c.nome, situacao: c.situacao, dataInicio: c.dataInicio, dataFim: c.dataFim } };
+        });
+      }
+      if (sql.includes('FROM inscricoes_encontro i')) {
+        const own = r.registrations.filter((i) => i.usuarioId === bind.usuario && (bind.encontro == null || i.encontroId === bind.encontro)).filter((i) => {
+          const e = r.meetings.find((e) => e.id === i.encontroId);
+          return e && (!bind.somenteFuturos || Date.parse(e.inicioEm) > Number(bind.agora)) && (!bind.somenteAgendados || e.situacao === 'AGENDADO');
+        });
+        if (/SELECT count\(\*\) AS total/i.test(sql)) return [{ total: own.length }];
+        own.sort((a, b) => Date.parse(r.meetings.find((e) => e.id === a.encontroId).inicioEm) - Date.parse(r.meetings.find((e) => e.id === b.encontroId).inicioEm) || a.id - b.id);
+        return own.slice(bind.deslocamento, bind.deslocamento + bind.limite).map((i) => {
+          const e = r.meetings.find((e) => e.id === i.encontroId), c = r.cycles.find((c) => c.id === e.cicloId), b = r.books.find((b) => b.id === c.livroId);
+          return { id: i.id, encontroId: e.id, criadoEm: i.criadoEm, atualizadoEm: i.atualizadoEm, inicioEm: e.inicioEm, encontro: { id: e.id, titulo: e.titulo, local: e.local, situacao: e.situacao }, ciclo: { id: c.id, nome: c.nome, situacao: c.situacao, dataInicio: c.dataInicio, dataFim: c.dataFim }, livro: { id: b.id, titulo: b.titulo, autor: b.autor } };
+        });
+      }
       if (sql.includes('AS "leitoresAtivos"')) return [{ leitoresAtivos: r.users.filter((u) => u.perfil === 'LEITOR' && u.situacao === 'ATIVO').length, leitoresPendentes: r.users.filter((u) => u.perfil === 'LEITOR' && u.situacao === 'PENDENTE').length,
         totalLivros: r.books.length, totalCiclos: r.cycles.length, encontrosAgendadosFuturos: r.meetings.filter((e) => e.situacao === 'AGENDADO' && Date.parse(e.inicioEm) > Number(bind.agora)).length }];
       if (sql.includes('AS "mediaProgresso"')) {
@@ -58,14 +81,27 @@ export function createDashboardConnection({ users, books, cycles, meetings, part
     },
     setScenario(value) {
       if (value === 'unavailable') { unavailable = true; return; }
-      if (!['normal', 'no-current', 'zero-participants', 'expired', 'empty'].includes(value)) return;
+      if (!['normal', 'no-current', 'zero-participants', 'expired', 'empty', 'reader-page-zero', 'reader-progress', 'reader-complete', 'reader-rounded', 'reader-agenda'].includes(value)) return;
       unavailable = false;
       for (const key of Object.keys(live)) live[key].splice(0, live[key].length, ...structuredClone(initial[key]));
       const current = cycles.find((c) => c.situacao === 'EM_ANDAMENTO');
       if (value === 'no-current') cycles.forEach((c) => { if (c.situacao === 'EM_ANDAMENTO') c.situacao = 'CONCLUIDO'; });
       if (value === 'zero-participants' && current) participations.splice(0, participations.length, ...participations.filter((p) => p.cicloId !== current.id));
       if (value === 'expired' && current) { current.dataInicio = '2020-01-01'; current.dataFim = '2020-01-31'; }
-      if (value === 'empty') for (const key of ['books', 'cycles', 'meetings', 'participations']) live[key].splice(0);
+      if (value === 'empty') for (const key of ['books', 'cycles', 'meetings', 'participations', 'registrations']) live[key].splice(0);
+      if (value.startsWith('reader-') && current) {
+        const book = books.find((b) => b.id === current.livroId), now = new Date().toISOString();
+        if (value === 'reader-rounded') book.totalPaginas = 20000;
+        let mine = participations.find((p) => p.usuarioId === 1 && p.cicloId === current.id);
+        if (!mine) { mine = { id: 100000, usuarioId: 1, cicloId: current.id, criadoEm: now, atualizadoEm: now }; participations.push(mine); }
+        mine.paginaAtual = value === 'reader-complete' ? book.totalPaginas : value === 'reader-rounded' ? book.totalPaginas - 1 : value === 'reader-progress' ? Math.floor(book.totalPaginas / 2) : 0;
+        mine.concluidaEm = value === 'reader-complete' ? now : null;
+        if (value === 'reader-agenda') for (let index = 0; index < 7; index++) {
+          const id = 100000 + index;
+          meetings.push({ id, cicloId: current.id, titulo: `Encontro pessoal de teste ${index + 1}`, inicioEm: `2030-02-${String(index + 1).padStart(2, '0')}T15:00:00.000Z`, situacao: 'AGENDADO', local: 'Biblioteca de teste', descricao: null, criadoEm: now, atualizadoEm: now });
+          registrations.push({ id, usuarioId: 1, encontroId: id, criadoEm: now, atualizadoEm: now });
+        }
+      }
     },
   };
 }

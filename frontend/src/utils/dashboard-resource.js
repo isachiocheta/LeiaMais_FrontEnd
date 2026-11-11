@@ -1,4 +1,5 @@
 export function createDashboardResource(service) {
+  const load = typeof service === 'function' ? service : (options) => service.getAdmin(options);
   const empty = Object.freeze({ status: 'loading', data: null, error: null });
   let state = empty, request = null, generation = 0;
   const listeners = new Set();
@@ -9,7 +10,7 @@ export function createDashboardResource(service) {
     request = current;
     publish({ status: state.data ? 'refreshing' : 'loading', data: state.data, error: null });
     current.promise = Promise.resolve().then(() => {
-      if (!controller.signal.aborted) return service.getAdmin({ signal: controller.signal });
+      if (!controller.signal.aborted) return load({ signal: controller.signal });
     }).then((data) => {
       if (request === current && !controller.signal.aborted && generation === current.generation) publish({ status: 'success', data, error: null });
     }, (error) => {
