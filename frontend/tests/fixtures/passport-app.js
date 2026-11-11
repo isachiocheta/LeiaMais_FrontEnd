@@ -3,10 +3,11 @@ import { fileURLToPath } from 'node:url';
 import { attachParticipationData } from './participation-data.js';
 import { attachUserAdministration } from './user-admin-data.js';
 import { createDashboardConnection } from './dashboard-data.js';
+import { attachProfileData } from './profile-data.js';
 
 export const backendPackage = fileURLToPath(new URL('../../../../leia+_backend/backend/package.json', import.meta.url));
 
-export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, catalogConnection, cycleConnection, meetingConnection, meetingNow = Date.now, readingFixture = false, seedReadings = false, userAdminFixture = false, seedReaders = false, dashboardFixture = false, dashboardNow = Date.now } = {}) {
+export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, catalogConnection, cycleConnection, meetingConnection, meetingNow = Date.now, readingFixture = false, seedReadings = false, userAdminFixture = false, seedReaders = false, dashboardFixture = false, dashboardNow = Date.now, profileFixture = false, cookieName = 'leia.fixture.sid' } = {}) {
   const require = createRequire(backendPackage);
   const express = require('express');
   const bcrypt = require('bcrypt');
@@ -53,10 +54,11 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
   };
   const readingData = readingFixture ? attachParticipationData(cycleConnection, users, { seed: seedReadings }) : null;
   const userAdministration = userAdminFixture ? attachUserAdministration(model, users, { seed: seedReaders }) : null;
+  const profileData = profileFixture ? attachProfileData(model, users) : null;
   const dashboardData = dashboardFixture ? createDashboardConnection({ users, books: catalogConnection.books, cycles: cycleConnection.cycles, meetings: meetingConnection.meetings, participations: readingData.rows, registrations: meetingConnection.registrations }) : null;
   if (meetingConnection && readingFixture) Object.assign(meetingConnection.models, { Usuario: cycleConnection.models.Usuario, ParticipacaoLeitura: cycleConnection.models.ParticipacaoLeitura });
   const authentication = criarAutenticacao({
-    configuracao: { ...carregarConfiguracaoSessao({ NODE_ENV: 'test', SESSION_SECRET: 'Segredo exclusivo da fixture frontend sem banco real', SESSION_COOKIE_SECURE: 'false' }), nomeCookie: 'leia.fixture.sid' },
+    configuracao: { ...carregarConfiguracaoSessao({ NODE_ENV: 'test', SESSION_SECRET: 'Segredo exclusivo da fixture frontend sem banco real', SESSION_COOKIE_SECURE: 'false' }), nomeCookie: cookieName },
     pool, obterUsuario: () => model, agora: () => Date.now() + offset,
     limiteLogin: { maximo: 100 }, limiteCadastro,
   });
@@ -108,6 +110,16 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
       res.redirect('/__fixture/catalog');
     });
   }
+  if (profileFixture) {
+    const { criarRotasPerfil } = require('./perfil/rotas');
+    app.use('/api/me', authentication.identificar, criarRotasPerfil({ obterUsuario: () => model, obterConexao: () => cycleConnection ?? meetingConnection }));
+    app.get('/__fixture/profile', (req, res) => res.type('html').send('<!doctype html><html lang="pt-BR"><title>Fixture do perfil</title><h1>Controle isolado do perfil</h1><form method="post" action="/__fixture/profile"><button name="mode" value="normal">Restaurar perfil da fixture</button><button name="mode" value="conflict">Conflito de edição do nome</button><button name="mode" value="password-conflict">Conflito de troca de senha</button><button name="mode" value="unavailable">Indisponibilizar perfil da fixture</button></form></html>'));
+    app.post('/__fixture/profile', express.urlencoded({ extended: false }), (req, res) => {
+      if (req.body.mode === 'password-conflict') { profileData.setMode('normal'); profileData.conflictNextPassword(); }
+      else profileData.setMode(req.body.mode);
+      res.redirect('/__fixture/profile');
+    });
+  }
   app.get('/__fixture', (req, res) => res.type('html').send('<!doctype html><html lang="pt-BR"><title>Fixture de autenticação</title><h1>Teste isolado de Passport</h1><p>Não acessa o banco real.</p><form method="post" action="/__fixture/expire"><button>Expirar sessões da fixture</button></form></html>'));
   app.post('/__fixture/expire', (req, res) => {
     offset += 31 * 60 * 1000;
@@ -116,7 +128,7 @@ export async function createPassportFixture({ limiteCadastro = { maximo: 100 }, 
   app.use(rotaNaoEncontrada);
   app.use(tratarErros);
   return {
-    app, password, sessions, users, readingData, userAdministration, dashboardData, close: authentication.encerrar,
+    app, password, sessions, users, readingData, userAdministration, dashboardData, profileData, close: authentication.encerrar,
     advance: (milliseconds) => { offset += milliseconds; },
     setRegistrationUnavailable: (value) => { registrationUnavailable = value; },
     verifyPassword: (email, candidate) => bcrypt.compare(candidate, users.find((user) => user.email === email).senhaHash),

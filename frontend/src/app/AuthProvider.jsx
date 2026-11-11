@@ -10,6 +10,11 @@ export function AuthProvider({ children, controller = authController }) {
   useEffect(() => {
     controller.verifySession().catch(() => {});
   }, [controller]);
-  const value = useMemo(() => ({ ...state, login: controller.login, logout: controller.logout, verifySession: controller.verifySession }), [state, controller]);
+  const value = useMemo(() => ({
+    ...state, login: controller.login, logout: controller.logout, verifySession: controller.verifySession,
+    readOwnProfile: controller.readOwnProfile, updateOwnName: controller.updateOwnName,
+    changeOwnPassword: controller.changeOwnPassword,
+    reauthenticateAfterUncertainPassword: controller.reauthenticateAfterUncertainPassword,
+  }), [state, controller]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

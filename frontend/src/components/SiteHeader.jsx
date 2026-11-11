@@ -57,6 +57,7 @@ export function SiteHeader() {
             <NavLink to="/ciclos" onClick={() => setOpen(false)}>Ciclos</NavLink>
             <NavLink to="/encontros" onClick={() => setOpen(false)}>Agenda</NavLink>
             <NavLink to="/minha-area" onClick={() => setOpen(false)}>Minha área</NavLink>
+            <NavLink to="/meu-perfil" onClick={() => setOpen(false)}>Meu perfil</NavLink>
             <Button type="button" onClick={signOut}>Sair</Button>
           </>}
           {auth.status === 'unauthenticated' && <>

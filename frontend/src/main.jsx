@@ -16,6 +16,7 @@ import './styles/meetings.css';
 import './styles/readers.css';
 import './styles/dashboard.css';
 import './styles/reader-home.css';
+import './styles/own-profile.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

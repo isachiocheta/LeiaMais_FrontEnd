@@ -68,6 +68,8 @@ export function LoginPage() {
           {auth.status === AUTH_STATUS.CHECKING && auth.action !== 'login' ? <LoadingState message="Verificando sua sessão…" /> : <>
             {auth.reason === 'expired' && <Alert severity="warning" className="login-notice">Sua sessão não está mais disponível. Entre novamente.</Alert>}
             {auth.reason === 'signed_out' && <p role="status" className="login-notice">Você saiu da sua conta.</p>}
+            {auth.reason === 'password_changed' && <Alert severity="success" role="status" className="login-notice">Sua senha foi alterada. As sessões anteriores foram invalidadas. Entre novamente com a nova senha.</Alert>}
+            {auth.reason === 'password_change_uncertain' && <Alert severity="warning" className="login-notice">Não foi possível confirmar a troca de senha. Ela pode ter sido alterada. Entre novamente para verificar seu acesso.</Alert>}
             {auth.status === AUTH_STATUS.TEMPORARY_ERROR && <div className="login-notice"><SessionProblem /></div>}
             {submitError && !auth.needsVerification && auth.status !== AUTH_STATUS.TEMPORARY_ERROR && <Alert severity="error" ref={errorRef} tabIndex={-1} className="login-notice">{submitError.policy?.userMessage || 'Não foi possível entrar. Tente novamente.'}</Alert>}
             <form onSubmit={submit} noValidate aria-label="Entrar no Leia+" aria-busy={busy} className="login-form">

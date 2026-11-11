@@ -1,5 +1,6 @@
 import { createAuthService } from '../services/auth.js';
 import { requestError } from '../services/api-errors.js';
+import { createProfileService } from '../services/profile.js';
 
 export const AUTH_STATUS = Object.freeze({
   CHECKING: 'checking',
@@ -10,27 +11,52 @@ export const AUTH_STATUS = Object.freeze({
 
 export function createAuthController(client) {
   const service = createAuthService(client);
+  const profile = createProfileService(client);
   const listeners = new Set();
   let state = Object.freeze({ status: AUTH_STATUS.CHECKING, user: null, error: null, action: null, reason: null, needsVerification: false });
   let epoch = 0;
   let pending = null;
+  let profilePending = null;
 
   function publish(next) {
     state = Object.freeze(next);
     for (const listener of listeners) listener();
   }
 
-  function expire() {
-    const knownSession = state.status === AUTH_STATUS.AUTHENTICATED || pending?.previous.status === AUTH_STATUS.AUTHENTICATED || pending?.action === 'login';
+  function clearAuthentication(reason) {
     epoch += 1;
     pending?.controller.abort();
     pending = null;
     client.cancelProtectedRequests();
     client.clearCsrfToken();
-    publish({ status: AUTH_STATUS.UNAUTHENTICATED, user: null, error: null, action: null, reason: knownSession ? 'expired' : null, needsVerification: false });
+    publish({ status: AUTH_STATUS.UNAUTHENTICATED, user: null, error: null, action: null, reason, needsVerification: false });
+  }
+
+  function expire() {
+    const knownSession = state.status === AUTH_STATUS.AUTHENTICATED || pending?.previous.status === AUTH_STATUS.AUTHENTICATED || pending?.action === 'login';
+    clearAuthentication(knownSession ? 'expired' : null);
   }
 
   const unsubscribeUnauthorized = client.subscribeUnauthorized(expire);
+
+  async function ownProfile(action, values, options) {
+    if (pending || profilePending?.epoch === epoch || state.status !== AUTH_STATUS.AUTHENTICATED) throw requestError('client');
+    const owner = state.user.id;
+    const version = epoch;
+    const operation = { epoch: version };
+    profilePending = operation;
+    try {
+      const result = action === 'read' ? await profile.getMine(options)
+        : action === 'name' ? await profile.updateName(values, options) : await profile.changePassword(values, options);
+      if (version !== epoch || state.status !== AUTH_STATUS.AUTHENTICATED || state.user.id !== owner) throw requestError('cancelled');
+      if (action === 'password') clearAuthentication('password_changed');
+      else {
+        if (result.id !== owner) throw requestError('unexpected_response', action === 'name' ? { method: 'PATCH', path: 'me', status: 200, requestSent: true } : {});
+        publish({ ...state, user: result });
+      }
+      return result;
+    } finally { if (profilePending === operation) profilePending = null; }
+  }
 
   function run(action, credentials) {
     if (pending) {
@@ -89,6 +115,10 @@ export function createAuthController(client) {
     verifySession: () => run('verify'),
     login: (credentials) => run('login', credentials),
     logout: () => run('logout'),
+    readOwnProfile: (options) => ownProfile('read', null, options),
+    updateOwnName: (values, options) => ownProfile('name', values, options),
+    changeOwnPassword: (values, options) => ownProfile('password', values, options),
+    reauthenticateAfterUncertainPassword: () => clearAuthentication('password_change_uncertain'),
     dispose() {
       epoch += 1;
       pending?.controller.abort();

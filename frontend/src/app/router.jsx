@@ -58,6 +58,13 @@ export const router = createBrowserRouter([
         handle: { title: 'Minha área | Leia+', requiresAuth: true },
       },
       {
+        path: 'meu-perfil',
+        element: <RequireRole allowedRoles={['ADMIN_CLUBE', 'LEITOR']} />,
+        ErrorBoundary: RouteErrorPage,
+        handle: { title: 'Meu perfil | Leia+', requiresAuth: true },
+        children: [{ index: true, lazy: async () => ({ Component: (await import('../pages/ProfilePage.jsx')).ProfilePage }) }],
+      },
+      {
         path: 'minha-agenda',
         element: <RequireRole allowedRoles={['ADMIN_CLUBE', 'LEITOR']} />,
         ErrorBoundary: RouteErrorPage,

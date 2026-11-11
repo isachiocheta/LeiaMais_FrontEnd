@@ -3,6 +3,8 @@
 .public-layout > main:focus-visible { outline: 3px solid var(--color-blueText); outline-offset: -3px; }
 .site-nav[hidden] { display: none; }
 .site-header .mobile-menu-button.MuiButton-root { display: none; }
+.site-header .brand-link { flex-shrink: 0; }
+.site-header .site-nav { min-width: 0; flex-wrap: wrap; justify-content: flex-end; column-gap: var(--space-3); row-gap: var(--space-2); padding-block: var(--space-3); }
 .site-header .site-nav a { padding: 8px 14px; border: 2px solid transparent; border-radius: var(--radius-small); white-space: nowrap; }
 .site-header .site-nav a.active { border-color: var(--color-ink); background: var(--color-yellow); box-shadow: 2px 2px 0 var(--color-ink); font-weight: 600; }
 .site-header .site-nav a:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 5px; }
