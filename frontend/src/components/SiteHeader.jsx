@@ -9,7 +9,7 @@ import { useAuth } from '../hooks/useAuth.js';
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
-  const isMobile = useMediaQuery('(max-width: 700px)');
+  const isMobile = useMediaQuery('(max-width: 1000px)');
   const location = useLocation();
   const navigate = useNavigate();
   const auth = useAuth();
@@ -67,7 +67,7 @@ export function SiteHeader() {
           {auth.status === 'checking' && <span className="session-nav" role="status">{auth.action === 'logout' ? 'Saindo…' : 'Verificando sessão…'}</span>}
           {auth.status === 'temporary_error' && <Button type="button" onClick={() => auth.verifySession().catch(() => {})}>Verificar sessão</Button>}
         </nav>
-        <span className="header-caption"><span aria-hidden="true">✳</span> Histórias que aproximam</span>
+        {auth.status !== 'authenticated' && <span className="header-caption"><span aria-hidden="true">✳</span> Histórias que aproximam</span>}
       </ContentContainer>
       <div className="checker" aria-hidden="true" />
     </header>

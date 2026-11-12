@@ -13,7 +13,7 @@
 .inner-page > .page-header { margin-bottom: var(--space-7); }
 .page-header > .eyebrow { color: var(--color-blueText); margin-bottom: var(--space-4); }
 .hero-page-header > .eyebrow { color: var(--color-ink); }
-.page-description { max-width: 700px; margin-top: var(--space-5); font-size: 15px; line-height: 1.9; color: var(--color-muted); }
+.page-description { max-width: 700px; margin-top: var(--space-5); font-size: 15px; line-height: 1.9; color: var(--color-muted); overflow-wrap: anywhere; }
 .about-heading { display: flex; gap: var(--space-7); align-items: center; justify-content: space-between; margin-bottom: var(--space-7); }
 .about-flower { width: 76px; height: auto; flex: none; margin-right: var(--space-6); transform: rotate(12deg); pointer-events: none; }
 .about-intro { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--space-6); align-items: center; padding: var(--space-7); }
@@ -74,15 +74,15 @@
   .header-caption { display: none; }
 }
 @media (max-width: 1000px) {
-  .about-intro, .approval-card { padding: var(--space-6); }
-  .footer-links { gap: var(--space-4); }
-}
-@media (max-width: 700px) {
   .header-inner { flex-wrap: wrap; }
   .site-header .mobile-menu-button.MuiButton-root { display: inline-flex; margin-left: auto; min-width: 94px; padding: 7px 12px; gap: var(--space-3); font-size: 12px; }
   .mobile-menu-button > span { font-size: 20px; line-height: 1; }
   .site-header .site-nav { width: 100%; flex-direction: column; align-items: stretch; gap: var(--space-3); padding-bottom: var(--space-5); }
   .site-header .site-nav a { font-size: 14px; min-height: 48px; }
+  .about-intro, .approval-card { padding: var(--space-6); }
+  .footer-links { gap: var(--space-4); }
+}
+@media (max-width: 700px) {
   .inner-page { padding-block: var(--space-7); }
   .inner-page > .page-header, .about-heading { margin-bottom: var(--space-6); }
   .about-heading { position: relative; display: block; }

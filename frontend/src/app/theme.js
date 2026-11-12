@@ -42,7 +42,7 @@ export const theme = createTheme({
     },
     MuiDialogTitle: { styleOverrides: { root: { fontWeight: 600, lineHeight: 1.4 } } },
     MuiDialogActions: { styleOverrides: { root: { gap: 12, padding: 24, flexWrap: 'wrap' } } },
-    MuiDialogContentText: { styleOverrides: { root: { color: tokens.colors.muted, fontSize: 14, lineHeight: 1.8 } } },
+    MuiDialogContentText: { styleOverrides: { root: { color: tokens.colors.muted, fontSize: 14, lineHeight: 1.8, overflowWrap: 'anywhere' } } },
     MuiChip: {
       styleOverrides: {
         root: { border: tokens.border, fontWeight: 600, color: tokens.colors.ink, backgroundColor: tokens.colors.cream },

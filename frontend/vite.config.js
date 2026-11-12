@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import { normalizeApiBaseUrl } from './src/services/api-url.js';
 
 export default defineConfig(({ mode }) => ({
+  appType: 'spa',
   plugins: [react()],
   envPrefix: [],
   define: {
